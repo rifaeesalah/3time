@@ -1,0 +1,17 @@
+{
+  "name": "3time-pos-appsscript",
+  "version": "1.0.0",
+  "private": true,
+  "description": "3 TIME POS for Google Apps Script deployment with clasp",
+  "scripts": {
+    "login": "clasp login",
+    "create": "clasp create --type standalone --title '3 TIME POS' --rootDir .",
+    "push": "clasp push -f",
+    "pull": "clasp pull",
+    "open": "clasp open",
+    "deploy": "clasp deploy --description 'GitHub deployment'"
+  },
+  "devDependencies": {
+    "@google/clasp": "^3.0.6"
+  }
+}

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>3 TIME KDS</title>
+  <style>
+    body{margin:0;font-family:Arial,sans-serif;background:#0f172a;color:#fff}
+    .top{position:sticky;top:0;background:#111827;padding:14px 18px;display:flex;justify-content:space-between;align-items:center}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px;padding:14px}
+    .card{background:#1f2937;border-radius:18px;padding:16px;box-shadow:0 10px 24px rgba(0,0,0,.22)}
+    .muted{color:#cbd5e1}
+    .pill{display:inline-block;background:#334155;border-radius:999px;padding:4px 10px;font-size:12px}
+    .pending{background:#7c2d12}.cooking{background:#92400e}.ready{background:#166534}.served{background:#1d4ed8}
+    button{border:none;border-radius:12px;padding:10px 12px;font-weight:700;cursor:pointer}
+    .btn{background:#fff;color:#111827}
+    ul{margin:10px 0 0 18px;padding:0}
+    li{margin:6px 0}
+  </style>
+</head>
+<body>
+  <div class="top">
+    <div>
+      <div id="title" style="font-size:24px;font-weight:700">KDS</div>
+      <div id="sub" class="muted"></div>
+    </div>
+    <div>
+      <button class="btn" onclick="load()">รีเฟรช</button>
+    </div>
+  </div>
+  <div id="wrap" class="grid"></div>
+  <script>
+    const params = new URLSearchParams(location.search);
+    const station = params.get('station') || 'kitchen';
+    function load(){
+      document.getElementById('title').textContent = station === 'bar' ? 'BAR DISPLAY' : 'KITCHEN DISPLAY';
+      google.script.run.withSuccessHandler(res=>{
+        document.getElementById('sub').textContent = 'อัปเดตล่าสุด ' + new Date().toLocaleString('th-TH');
+        const wrap = document.getElementById('wrap');
+        wrap.innerHTML = (res.orders||[]).length ? res.orders.map(o=>`<div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center"><div><div style="font-size:28px;font-weight:700">โต๊ะ ${o.tableNo}</div><div class="muted">${new Date(o.createdAt).toLocaleString('th-TH')}</div></div><span class="pill ${o.status}">${o.status}</span></div>
+          <ul>${(o.items||[]).map(i=>`<li>${i.name} x${i.qty}${i.note?` — ${i.note}`:''}</li>`).join('')}</ul>
+          ${o.note?`<div class="muted" style="margin-top:8px">หมายเหตุ: ${o.note}</div>`:''}
+        </div>`).join('') : '<div class="card">ไม่มีคิว</div>';
+      }).getKitchenDisplayData(station);
+    }
+    load();
+    setInterval(load, 10000);
+  </script>
+</body>
+</html>

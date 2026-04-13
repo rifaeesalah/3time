@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3 TIME Customer Ordering</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;700&family=Sarabun:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#f8fafc;--card:#fff;--line:#e5e7eb;--text:#0f172a;--muted:#64748b;--pri:#2563eb;--ok:#16a34a;--warn:#d97706;--shadow:0 12px 28px rgba(15,23,42,.08);--radius:18px}
+    *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font-family:'Sarabun',sans-serif;padding-bottom:110px} .wrap{max-width:980px;margin:0 auto;padding:16px}
+    .hero{background:#0f172a;color:#fff;border-radius:26px;padding:20px;box-shadow:var(--shadow)} .brand{font-family:'Kanit',sans-serif;font-size:28px;font-weight:700}.sub{opacity:.8}
+    .chips{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.chip{padding:8px 12px;border:1px solid var(--line);border-radius:999px;background:#fff;cursor:pointer}.chip.active{background:#dbeafe;color:#1d4ed8;border-color:#bfdbfe}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px}.card{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);padding:14px}.name{font-weight:700}.muted{color:var(--muted)} .price{color:#1d4ed8;font-weight:700;margin-top:8px}
+    .qty{display:flex;align-items:center;gap:6px;margin-top:10px}.qty button{width:30px;height:30px;border-radius:10px;border:1px solid var(--line);background:#fff}.qty strong{min-width:22px;text-align:center}
+    .bar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);padding:12px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;box-shadow:0 -10px 24px rgba(15,23,42,.08)}
+    .btn{border:none;border-radius:14px;padding:12px 14px;font-weight:700;cursor:pointer}.btn-pri{background:var(--pri);color:#fff}.btn-line{background:#fff;border:1px solid var(--line)}.btn-ok{background:var(--ok);color:#fff}.btn-warn{background:var(--warn);color:#fff}
+    .drawer{position:fixed;inset:0;background:rgba(15,23,42,.4);display:none;align-items:flex-end}.drawer.show{display:flex}.sheet{background:#fff;width:100%;max-height:86vh;border-radius:24px 24px 0 0;overflow:auto}.sheet .hd,.sheet .ft{padding:16px;border-bottom:1px solid var(--line)}.sheet .ft{border-top:1px solid var(--line);border-bottom:none;display:flex;justify-content:flex-end;gap:10px}.sheet .bd{padding:16px}
+    .line{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)} input,textarea{width:100%;padding:12px;border:1px solid var(--line);border-radius:14px;background:#fff;font:inherit} textarea{min-height:92px}
+    .small-card{margin-top:16px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="hero"><div class="brand">3 TIME</div><div id="tableInfo" class="sub">กำลังโหลดข้อมูลโต๊ะ...</div></div>
+    <div class="card small-card"><strong>ออเดอร์ที่กำลังดำเนินการ</strong><div id="activeOrders" style="margin-top:10px"></div></div>
+    <div style="margin-top:16px"><input id="searchInput" placeholder="ค้นหาเมนู" oninput="applyFilter()"></div>
+    <div id="chips" class="chips"></div>
+    <div id="menuGrid" class="grid"></div>
+    <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap"><button class="btn btn-line" onclick="openServiceCall('waiter')">เรียกพนักงาน</button><button class="btn btn-warn" onclick="openServiceCall('bill')">ขอคิดเงิน</button><button class="btn btn-line" onclick="refreshOrders()">รีเฟรชออเดอร์</button></div>
+  </div>
+
+  <div class="bar"><div><strong id="cartCount">0 รายการ</strong><div class="muted">รวม <span id="cartTotal">฿0.00</span></div></div><button class="btn btn-pri" onclick="openCheckout()">ดูตะกร้า / ส่งออเดอร์</button></div>
+  <div id="drawer" class="drawer"><div class="sheet"><div class="hd"><strong id="drawerTitle"></strong></div><div id="drawerBody" class="bd"></div><div id="drawerFooter" class="ft"></div></div></div>
+
+  <script>
+    const PAGE={tableId:new URLSearchParams(location.search).get('tableId'),token:new URLSearchParams(location.search).get('token')};
+    const STATE={settings:null,table:null,menuItems:[],category:'all',cart:[],activeOrders:[]};
+    document.addEventListener('DOMContentLoaded',loadPage);
+    function loadPage(){google.script.run.withSuccessHandler(res=>{STATE.settings=res.settings;STATE.table=res.table;STATE.menuItems=res.menuItems||[];STATE.activeOrders=res.activeOrders||[];tableInfo.textContent=`โต๊ะ ${res.table.tableNo} • Zone ${res.table.zone||'-'} • ${res.table.seats} ที่นั่ง`;renderCats();applyFilter();renderActiveOrders();}).withFailureHandler(err=>{tableInfo.textContent=err.message||'ลิงก์ไม่ถูกต้อง';menuGrid.innerHTML='';}).getPublicOrderingContext(PAGE.tableId,PAGE.token)}
+    function refreshOrders(){google.script.run.withSuccessHandler(res=>{STATE.activeOrders=res.orders||[];renderActiveOrders()}).withFailureHandler(err=>alert(err.message||'โหลดออเดอร์ไม่สำเร็จ')).getCustomerActiveOrders(PAGE.tableId,PAGE.token)}
+    function renderActiveOrders(){activeOrders.innerHTML=STATE.activeOrders.length?STATE.activeOrders.map(o=>`<div class="line"><div><strong>ออเดอร์ ${o.id}</strong><div class="muted">${o.itemsArray.map(i=>`${i.name} x${i.qty}`).join(', ')}</div></div><div>${o.status}</div><div>฿${money(o.totalAmount)}</div></div>`).join(''):'<div class="muted">ยังไม่มีออเดอร์ที่กำลังดำเนินการ</div>'}
+    function renderCats(){const cats=['all',...new Set(STATE.menuItems.map(x=>x.category))];chips.innerHTML=cats.map(c=>`<button class="chip ${STATE.category===c?'active':''}" onclick="setCat('${esc(c)}')">${c==='all'?'ทั้งหมด':c}</button>`).join('')}
+    function setCat(c){STATE.category=c;renderCats();applyFilter()}
+    function applyFilter(){const q=(searchInput.value||'').toLowerCase();const list=STATE.menuItems.filter(x=>(STATE.category==='all'||x.category===STATE.category)&&(`${x.name} ${x.description} ${x.category}`.toLowerCase().includes(q)));menuGrid.innerHTML=list.map(i=>`<div class="card"><div class="name">${i.name}</div><div class="muted">${i.description||i.category}</div><div class="price">฿${money(i.price)}</div><div class="qty"><button onclick='qty(${JSON.stringify(i.id)},${JSON.stringify(i.name)},${i.price},-1)'>-</button><strong>${cartQty(i.id)}</strong><button onclick='qty(${JSON.stringify(i.id)},${JSON.stringify(i.name)},${i.price},1)'>+</button></div></div>`).join('')||'<div class="card">ไม่พบเมนู</div>';syncBar()}
+    function cartQty(id){const f=STATE.cart.find(x=>x.menuId===id);return f?f.qty:0}
+    function qty(id,name,price,d){const f=STATE.cart.find(x=>x.menuId===id);if(!f&&d>0)STATE.cart.push({menuId:id,name,price:Number(price),qty:1});else if(f){f.qty+=d;if(f.qty<=0)STATE.cart=STATE.cart.filter(x=>x.menuId!==id)}applyFilter()}
+    function syncBar(){cartCount.textContent=`${STATE.cart.reduce((s,i)=>s+i.qty,0)} รายการ`;cartTotal.textContent='฿'+money(STATE.cart.reduce((s,i)=>s+i.qty*i.price,0))}
+    function openCheckout(){showDrawer('สรุปออเดอร์',`<div>${STATE.cart.length?STATE.cart.map(i=>`<div class="line"><div><strong>${i.name}</strong><div class="muted">฿${money(i.price)}</div></div><div>${i.qty}</div><div>฿${money(i.qty*i.price)}</div></div>`).join(''):'<div class="muted">ยังไม่มีรายการ</div>'}</div><div style="margin-top:14px"><input id="customerName" placeholder="ชื่อผู้สั่ง (ถ้ามี)"></div><div style="margin-top:10px"><textarea id="customerNote" placeholder="หมายเหตุ เช่น ไม่ใส่หอม"></textarea></div><div style="margin-top:14px;font-weight:700">รวม ${cartTotal.textContent}</div>`, `<button class="btn btn-line" onclick="hideDrawer()">ปิด</button><button class="btn btn-pri" onclick="placeOrder()">ยืนยันส่งออเดอร์</button>`)}
+    function placeOrder(){if(!STATE.cart.length)return;google.script.run.withSuccessHandler(()=>{hideDrawer();STATE.cart=[];applyFilter();refreshOrders();alert('ส่งออเดอร์เรียบร้อยแล้ว');}).withFailureHandler(err=>alert(err.message||'ส่งออเดอร์ไม่สำเร็จ')).placePublicOrder({tableId:PAGE.tableId,token:PAGE.token,customerName:customerName.value,note:customerNote.value,items:STATE.cart})}
+    function openServiceCall(type){showDrawer(type==='bill'?'ขอคิดเงิน':'เรียกพนักงาน',`<textarea id="callMessage" placeholder="พิมพ์ข้อความถึงร้าน (ถ้ามี)"></textarea>`, `<button class="btn btn-line" onclick="hideDrawer()">ยกเลิก</button><button class="btn btn-ok" onclick="sendCall('${type}')">ส่งคำขอ</button>`)}
+    function sendCall(type){google.script.run.withSuccessHandler(()=>{hideDrawer();alert(type==='bill'?'ส่งคำขอคิดเงินแล้ว':'ส่งคำขอเรียกพนักงานแล้ว')}).withFailureHandler(err=>alert(err.message||'ส่งคำขอไม่สำเร็จ')).createServiceCall({tableId:PAGE.tableId,token:PAGE.token,type,message:callMessage.value})}
+    function showDrawer(t,b,f){drawerTitle.innerHTML=t;drawerBody.innerHTML=b||'';drawerFooter.innerHTML=f||'';drawer.classList.add('show')} function hideDrawer(){drawer.classList.remove('show')}
+    function money(n){return Number(n||0).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})} function esc(v){return String(v||'').replace(/'/g,"&#39;")}
+  </script>
+</body>
+</html>

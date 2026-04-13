@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>3 TIME POS V5</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;700&family=Sarabun:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#f6f8fc;--card:#fff;--text:#0f172a;--muted:#64748b;--line:#e2e8f0;--nav:#0f172a;--pri:#2563eb;--ok:#16a34a;--warn:#d97706;--danger:#dc2626;--shadow:0 12px 34px rgba(15,23,42,.08);--radius:18px}
+    *{box-sizing:border-box} body{margin:0;background:var(--bg);font-family:'Sarabun',sans-serif;color:var(--text)} button,input,select,textarea{font:inherit}
+    .hidden{display:none!important} .login{min-height:100vh;display:grid;place-items:center;background:linear-gradient(135deg,#0f172a,#1e293b)} .login-card{width:min(420px,92vw);background:rgba(255,255,255,.08);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.12);border-radius:28px;padding:24px;color:#fff}
+    .brand{font-family:'Kanit',sans-serif;font-size:30px;font-weight:700}.sub{opacity:.78}.field{margin-top:12px}.field label{display:block;margin-bottom:6px;font-size:14px}.field input,.field select,.field textarea{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:#fff;color:#0f172a} .login-card input{background:rgba(255,255,255,.95)}
+    .btn{border:none;border-radius:14px;padding:12px 14px;font-weight:700;cursor:pointer}.btn-pri{background:var(--pri);color:#fff}.btn-ok{background:var(--ok);color:#fff}.btn-line{background:#fff;border:1px solid var(--line)}.btn-warn{background:var(--warn);color:#fff}.btn-danger{background:var(--danger);color:#fff}
+    .app{display:grid;grid-template-columns:280px 1fr;min-height:100vh}.side{background:var(--nav);color:#fff;padding:18px;display:flex;flex-direction:column}.menu button{width:100%;text-align:left;background:transparent;border:none;color:#cbd5e1;padding:12px 14px;border-radius:14px;cursor:pointer}.menu button.active{background:rgba(255,255,255,.08);color:#fff}.main{padding:20px}.topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px}.top-actions{display:flex;gap:10px;flex-wrap:wrap}
+    .grid{display:grid;gap:14px}.stats{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}.stat,.card{background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow)} .stat .num{font-size:28px;font-weight:700;font-family:'Kanit',sans-serif}.muted{color:var(--muted)} .section{display:none}.section.active{display:block}
+    .table-grid{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}.table-card{padding:14px;border-radius:18px;background:#fff;border:1px solid var(--line);box-shadow:var(--shadow)} .badge{display:inline-flex;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700} .b-available{background:#dcfce7;color:#166534}.b-occupied{background:#dbeafe;color:#1d4ed8}.b-bill{background:#fef3c7;color:#92400e}
+    table{width:100%;border-collapse:collapse} th,td{padding:10px 8px;border-bottom:1px solid var(--line);text-align:left;font-size:14px;vertical-align:top} th{color:var(--muted);font-weight:600} .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px}.toolbar input,.toolbar select{padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:#fff}
+    .two{display:grid;grid-template-columns:1.1fr .9fr;gap:14px}.menu-grid{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}.menu-item{border:1px solid var(--line);border-radius:16px;padding:12px}.menu-item h4{margin:0 0 6px;font-size:16px}.qtybox{display:flex;align-items:center;gap:8px;margin-top:10px}.qtybox button{width:30px;height:30px;border:1px solid var(--line);border-radius:10px;background:#fff}
+    .order-line{display:grid;grid-template-columns:1fr auto auto;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+    .modal{position:fixed;inset:0;background:rgba(15,23,42,.5);display:none;align-items:center;justify-content:center;padding:18px}.modal.show{display:flex}.dialog{width:min(760px,96vw);max-height:92vh;overflow:auto;background:#fff;border-radius:24px;box-shadow:var(--shadow)} .dialog .hd,.dialog .ft{padding:16px;border-bottom:1px solid var(--line)} .dialog .ft{border-top:1px solid var(--line);border-bottom:none;display:flex;justify-content:flex-end;gap:10px}.dialog .bd{padding:16px}
+    .toast{position:fixed;right:18px;bottom:18px;background:#0f172a;color:#fff;padding:12px 14px;border-radius:14px;display:none;z-index:40}
+    @media(max-width:1000px){.app{grid-template-columns:1fr}.side{position:sticky;top:0;z-index:5}.two{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <div id="loginView" class="login">
+    <div class="login-card">
+      <div class="brand">3 TIME</div>
+      <div class="sub">POS V5 หน้าร้านเต็มจริง</div>
+      <div class="field"><label>ชื่อผู้ใช้</label><input id="username" value="admin"></div>
+      <div class="field"><label>รหัสผ่าน</label><input id="password" type="password" value="1234"></div>
+      <div style="display:flex;gap:10px;margin-top:14px"><button class="btn btn-pri" style="flex:1" onclick="doLogin()">เข้าสู่ระบบ</button><button class="btn btn-line" onclick="setupSystem()">Setup System</button></div>
+      <div id="bootInfo" class="sub" style="margin-top:12px"></div>
+    </div>
+  </div>
+
+  <div id="appView" class="app hidden">
+    <aside class="side">
+      <div class="brand" style="font-size:26px">3 TIME</div>
+      <div id="userInfo" class="sub" style="margin:6px 0 16px"></div>
+      <div class="menu">
+        <button class="active" data-sec="dashboard" onclick="showSection('dashboard',this)">Dashboard</button>
+        <button data-sec="pos" onclick="showSection('pos',this)">POS / รับออเดอร์</button>
+        <button data-sec="orders" onclick="showSection('orders',this)">ออเดอร์ / ชำระเงิน</button>
+        <button data-sec="kitchen" onclick="showSection('kitchen',this)">ครัว / KDS / Print Queue</button>
+        <button data-sec="calls" onclick="showSection('calls',this)">เรียกพนักงาน</button>
+        <button data-sec="inventory" onclick="showSection('inventory',this)">สต๊อก / Stock Take</button>
+        <button data-sec="tables" onclick="showSection('tables',this)">ย้ายโต๊ะ / รวมบิล</button>
+        <button data-sec="procurement" onclick="showSection('procurement',this)">ซัพพลายเออร์ / จัดซื้อ / จ่าย</button>
+        <button data-sec="shift" onclick="showSection('shift',this)">เปิดกะ / ปิดกะขั้นสูง</button>
+        <button data-sec="reports" onclick="showSection('reports',this)">รายงานปิดกะ</button>
+        <button data-sec="customer" onclick="showSection('customer',this)">ลูกค้าสั่งเอง</button>
+        <button data-sec="settings" onclick="showSection('settings',this)">ตั้งค่า</button>
+      </div>
+      <div style="margin-top:auto"><button class="btn btn-line" style="width:100%" onclick="logout()">ออกจากระบบ</button></div>
+    </aside>
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <h2 id="pageTitle" style="margin:0 0 6px">Dashboard</h2>
+          <div id="shiftMini" class="muted"></div>
+        </div>
+        <div class="top-actions">
+          <button class="btn btn-line" onclick="refreshCurrent()">รีเฟรช</button>
+          <button class="btn btn-line" onclick="showDbInfo()">Google Sheets</button>
+        </div>
+      </div>
+
+      <section id="sec-dashboard" class="section active">
+        <div id="dashStats" class="grid stats"></div>
+        <div class="card" style="margin-top:14px"><h3 style="margin-top:0">สถานะโต๊ะ</h3><div id="dashTables" class="grid table-grid"></div></div>
+      </section>
+
+      <section id="sec-pos" class="section">
+        <div class="two">
+          <div class="card">
+            <div class="toolbar"><select id="posTable"></select><input id="menuSearch" placeholder="ค้นหาเมนู" oninput="renderMenuGrid()"></div>
+            <div id="menuGrid" class="grid menu-grid"></div>
+          </div>
+          <div class="card">
+            <h3 style="margin-top:0">ตะกร้า</h3>
+            <div id="cartLines"></div>
+            <div class="field"><label>ชื่อลูกค้า</label><input id="posCustomerName"></div>
+            <div class="field"><label>หมายเหตุ</label><textarea id="posNote"></textarea></div>
+            <div style="display:flex;justify-content:space-between;margin-top:12px;font-weight:700"><span>รวม</span><span id="cartTotal">฿0.00</span></div>
+            <div style="display:flex;gap:10px;margin-top:14px"><button class="btn btn-line" onclick="clearCart()">ล้างตะกร้า</button><button class="btn btn-pri" style="flex:1" onclick="submitOrder()">ยืนยันออเดอร์</button></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="sec-orders" class="section">
+        <div class="card">
+          <div class="toolbar"><select id="orderFilter" onchange="loadOrders()"><option value="all">ทุกสถานะ</option><option value="pending">pending</option><option value="cooking">cooking</option><option value="ready">ready</option><option value="served">served</option><option value="paid">paid</option></select></div>
+          <div id="ordersWrap"></div>
+        </div>
+      </section>
+
+      
+      <section id="sec-kitchen" class="section">
+        <div class="card" style="margin-bottom:14px">
+          <h3 style="margin-top:0">แยกจอ KDS ครัว / บาร์</h3>
+          <div class="toolbar">
+            <button class="btn btn-line" onclick="openKDSPage('kitchen')">เปิดจอครัว</button>
+            <button class="btn btn-line" onclick="openKDSPage('bar')">เปิดจอบาร์</button>
+            <button class="btn btn-line" onclick="loadKitchen()">รีเฟรช</button>
+          </div>
+          <div id="kdsLinks" class="muted"></div>
+        </div>
+        <div class="two">
+          <div class="card"><h3 style="margin-top:0">คิวครัว</h3><div id="kitchenOrders"></div></div>
+          <div class="card"><h3 style="margin-top:0">Print Queue</h3><div id="printQueue"></div></div>
+        </div>
+      </section>
+
+
+      <section id="sec-calls" class="section"><div class="card"><h3 style="margin-top:0">รายการเรียกพนักงาน / ขอคิดเงิน</h3><div id="callsWrap"></div></div></section>
+
+      
+      <section id="sec-inventory" class="section">
+        <div class="two">
+          <div class="card"><div class="toolbar"><button class="btn btn-pri" onclick="openStockModal()">เพิ่มวัตถุดิบ</button><button class="btn btn-line" onclick="openStockTakeModal()">เริ่ม Stock Take</button><button class="btn btn-line" onclick="loadInventory()">รีเฟรช</button></div><div id="inventoryWrap"></div></div>
+          <div class="card"><h3 style="margin-top:0">ปรับสต๊อก</h3><div class="field"><label>วัตถุดิบ</label><select id="adjStockId"></select></div><div class="field"><label>จำนวน (+ รับเข้า / - ตัดออก)</label><input id="adjQty" type="number" step="0.01"></div><div class="field"><label>หมายเหตุ</label><textarea id="adjNote"></textarea></div><div style="display:flex;gap:10px"><button class="btn btn-ok" onclick="adjustStockNow('in')">รับเข้า</button><button class="btn btn-warn" onclick="adjustStockNow('out')">ตัดออก</button></div><div id="stockMoves" style="margin-top:16px"></div></div>
+        </div>
+        <div class="card" style="margin-top:14px"><h3 style="margin-top:0">รอบ Stock Take</h3><div id="stockTakeWrap"></div></div>
+      </section>
+
+
+
+      <section id="sec-tables" class="section">
+        <div class="two">
+          <div class="card">
+            <h3 style="margin-top:0">ย้ายโต๊ะ</h3>
+            <div class="field"><label>จากโต๊ะ</label><select id="transferFrom"></select></div>
+            <div class="field"><label>ไปโต๊ะ</label><select id="transferTo"></select></div>
+            <div class="field"><label>หมายเหตุ</label><textarea id="transferNote"></textarea></div>
+            <button class="btn btn-pri" onclick="transferTableNow()">ย้ายโต๊ะ</button>
+          </div>
+          <div class="card">
+            <h3 style="margin-top:0">รวมบิลหลายโต๊ะ</h3>
+            <div class="field"><label>เลือกโต๊ะต้นทาง (คั่นด้วย comma เช่น 1,2)</label><input id="mergeSources" placeholder="1,2"></div>
+            <div class="field"><label>โต๊ะปลายทาง</label><select id="mergeTarget"></select></div>
+            <div class="field"><label>หมายเหตุ</label><textarea id="mergeNote"></textarea></div>
+            <button class="btn btn-warn" onclick="mergeBillsNow()">รวมบิล</button>
+          </div>
+        </div>
+        <div class="card" style="margin-top:14px"><h3 style="margin-top:0">สถานะโต๊ะล่าสุด</h3><div id="tableOpsWrap"></div></div>
+      </section>
+
+      
+      <section id="sec-procurement" class="section">
+        <div class="two">
+          <div class="card">
+            <div class="toolbar"><button class="btn btn-pri" onclick="openSupplierModal()">เพิ่มซัพพลายเออร์</button><button class="btn btn-line" onclick="loadProcurement()">รีเฟรช</button></div>
+            <div id="supplierWrap"></div>
+          </div>
+          <div class="card">
+            <h3 style="margin-top:0">สร้าง Purchase Order</h3>
+            <div class="field"><label>ซัพพลายเออร์</label><select id="poSupplier"></select></div>
+            <div class="field"><label>วันที่คาดรับ</label><input id="poExpected" type="date"></div>
+            <div class="field"><label>หมายเหตุ</label><textarea id="poNote"></textarea></div>
+            <div id="poBuilder"></div>
+            <div style="display:flex;gap:10px;margin-top:10px"><button class="btn btn-line" onclick="addPoLine()">เพิ่มรายการ</button><button class="btn btn-pri" onclick="createPONow()">สร้าง PO</button></div>
+          </div>
+        </div>
+        <div class="two" style="margin-top:14px">
+          <div class="card"><h3 style="margin-top:0">รายการ PO</h3><div id="poWrap"></div></div>
+          <div class="card"><h3 style="margin-top:0">ประวัติรับเข้า</h3><div id="receiptWrap"></div></div>
+        </div>
+        <div class="two" style="margin-top:14px">
+          <div class="card">
+            <h3 style="margin-top:0">จ่ายซัพพลายเออร์</h3>
+            <div class="field"><label>ซัพพลายเออร์</label><select id="spSupplier"></select></div>
+            <div class="field"><label>ผูกกับ PO (ถ้ามี)</label><input id="spPoId" placeholder="PO0001"></div>
+            <div class="field"><label>จำนวนเงิน</label><input id="spAmount" type="number" step="0.01"></div>
+            <div class="field"><label>วิธีจ่าย</label><select id="spMethod"><option value="transfer">โอน</option><option value="cash">เงินสด</option><option value="qr">QR</option></select></div>
+            <div class="field"><label>เลขอ้างอิง</label><input id="spRef"></div>
+            <div class="field"><label>หมายเหตุ</label><textarea id="spNote"></textarea></div>
+            <button class="btn btn-pri" onclick="saveSupplierPaymentNow()">บันทึกการจ่าย</button>
+          </div>
+          <div class="card"><h3 style="margin-top:0">เจ้าหนี้ / การจ่ายล่าสุด</h3><div id="supplierPaymentWrap"></div></div>
+        </div>
+      </section>
+
+
+      
+      <section id="sec-shift" class="section">
+        <div class="two">
+          <div class="card"><h3 style="margin-top:0">สถานะกะ</h3><div id="shiftWrap"></div></div>
+          <div class="card"><h3 style="margin-top:0">ประวัติกะล่าสุด</h3><div id="shiftList"></div></div>
+        </div>
+        <div class="card" style="margin-top:14px"><h3 style="margin-top:0">Close Shift Dashboard ขั้นสูง</h3><div id="shiftAdvWrap"></div></div>
+      </section>
+
+
+
+      <section id="sec-reports" class="section">
+        <div class="card">
+          <div class="toolbar"><button class="btn btn-line" onclick="loadReports()">รีเฟรช</button></div>
+          <div id="reportsWrap"></div><div id="grossProfitWrap" style="margin-top:14px"></div><div id="receiptAuditWrap" style="margin-top:14px"></div>
+        </div>
+      </section>
+
+      <section id="sec-customer" class="section"><div class="card"><h3 style="margin-top:0">ลิงก์ลูกค้าสั่งเอง</h3><div id="customerWrap"></div></div></section>
+
+      <section id="sec-settings" class="section">
+        <div class="card">
+          <div class="field"><label>ชื่อร้าน</label><input id="stName"></div>
+          <div class="field"><label>เบอร์โทร</label><input id="stPhone"></div>
+          <div class="field"><label>ที่อยู่</label><textarea id="stAddress"></textarea></div>
+          <div class="field"><label>Web App URL สำหรับลูกค้า</label><input id="stCustomerUrl"></div>
+          <div class="field"><label>VAT %</label><input id="stVat" type="number"></div>
+          <div class="field"><label><input id="stVatEnabled" type="checkbox"> เปิดใช้ VAT</label></div>
+          <div class="field"><label><input id="stAutoQueue" type="checkbox"> สร้างคิวพิมพ์ครัวอัตโนมัติ</label></div>
+          <div class="field"><label><input id="stBridgeEnabled" type="checkbox"> เปิดใช้งาน Printer Bridge</label></div>
+          <div class="field"><label>Bridge Token</label><input id="stBridgeToken" placeholder="secret-token"></div>
+          <div class="field"><label>Printer เริ่มต้น</label><input id="stBridgePrinter" placeholder="Kitchen-1"></div>
+          <div class="field"><label>Poll Seconds</label><input id="stBridgePoll" type="number" value="5"></div>
+          <div style="display:flex;gap:10px"><button class="btn btn-pri" onclick="saveSettingsNow()">บันทึก</button></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="modal" class="modal"><div class="dialog"><div class="hd"><strong id="modalTitle"></strong></div><div id="modalBody" class="bd"></div><div id="modalFooter" class="ft"></div></div></div>
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const STATE={user:null,settings:null,section:'dashboard',tables:[],menuItems:[],cart:[],orders:[],inventory:[]};
+    document.addEventListener('DOMContentLoaded', bootstrap);
+
+    function bootstrap(){google.script.run.withSuccessHandler(res=>{bootInfo.textContent=res.hasSetup?`พร้อมใช้งาน • ${res.appVersion}`:`ยังไม่พบฐานข้อมูล • กด Setup System`; if(res.settings) STATE.settings=res.settings; }).withFailureHandler(()=>bootInfo.textContent='กด Setup System เพื่อเริ่มใช้งาน').getBootstrapData()}
+    function setupSystem(){google.script.run.withSuccessHandler(res=>{toast('สร้างฐานข้อมูลแล้ว'); bootInfo.innerHTML=`<a target="_blank" href="${res.spreadsheetUrl}">เปิด Google Sheets</a>`}).withFailureHandler(e=>toast(e.message||'setup ไม่สำเร็จ')).setupSystem()}
+    function doLogin(){google.script.run.withSuccessHandler(res=>{STATE.user=res.user;STATE.settings=res.settings; loginView.classList.add('hidden');appView.classList.remove('hidden'); userInfo.textContent=`${res.user.name} • ${res.user.role}`; refreshCurrent();}).withFailureHandler(e=>toast(e.message||'เข้าสู่ระบบไม่สำเร็จ')).login(username.value,password.value)}
+    function logout(){location.reload()}
+    function showSection(sec,btn){STATE.section=sec; document.querySelectorAll('.menu button').forEach(b=>b.classList.toggle('active',b===btn)); document.querySelectorAll('.section').forEach(s=>s.classList.remove('active')); document.getElementById('sec-'+sec).classList.add('active'); pageTitle.textContent=btn.textContent; refreshCurrent()}
+    function refreshCurrent(){shiftMini.textContent='กำลังโหลด...'; const sec=STATE.section; if(sec==='dashboard') loadDashboard(); else if(sec==='pos') loadPOS(); else if(sec==='orders') loadOrders(); else if(sec==='kitchen') loadKitchen(); else if(sec==='calls') loadCalls(); else if(sec==='inventory') loadInventory(); else if(sec==='tables') loadTableOps(); else if(sec==='procurement') loadProcurement(); else if(sec==='shift') loadShift(); else if(sec==='reports') loadReports(); else if(sec==='customer') loadCustomerLinks(); else if(sec==='settings') loadSettings();}
+
+    function loadDashboard(){google.script.run.withSuccessHandler(res=>{shiftMini.textContent=res.currentShift?`เปิดกะอยู่ • ${fmtDate(res.currentShift.openedAt)}`:'ยังไม่มีกะเปิดอยู่'; dashStats.innerHTML=`
+      ${statCard('ยอดขายวันนี้',money(res.todayRevenue,true))}
+      ${statCard('ออเดอร์วันนี้',res.todayOrders)}
+      ${statCard('ออเดอร์ค้าง',res.activeOrders)}
+      ${statCard('ของใกล้หมด',res.lowStockCount)}
+      ${statCard('เรียกพนักงาน',res.openServiceCalls)}
+    `; dashTables.innerHTML=res.tables.map(t=>`<div class="table-card"><div style="display:flex;justify-content:space-between"><strong>โต๊ะ ${t.tableNo}</strong><span class="badge ${t.status==='available'?'b-available':(t.status==='occupied'?'b-occupied':'b-bill')}">${t.status}</span></div><div class="muted">Zone ${t.zone} • ${t.seats} ที่นั่ง</div></div>`).join('')}).getDashboardSummary()}
+    function statCard(label,val){return `<div class="stat"><div class="muted">${label}</div><div class="num">${val}</div></div>`}
+
+    function loadPOS(){google.script.run.withSuccessHandler(tables=>{STATE.tables=tables; posTable.innerHTML=tables.map(t=>`<option value="${t.id}">โต๊ะ ${t.tableNo} • ${t.zone}</option>`).join(''); google.script.run.withSuccessHandler(items=>{STATE.menuItems=items; renderMenuGrid(); renderCart();}).getMenuItems()}).getTables()}
+    function renderMenuGrid(){const q=(menuSearch.value||'').toLowerCase(); menuGrid.innerHTML=STATE.menuItems.filter(i=>`${i.name} ${i.category} ${i.description}`.toLowerCase().includes(q)).map(i=>`<div class="menu-item"><h4>${i.name}</h4><div class="muted">${i.category}</div><div style="margin-top:8px;font-weight:700">฿${money(i.price,true)}</div><div class="qtybox"><button onclick='addCart(${JSON.stringify(i.id)},${JSON.stringify(i.name)},${i.price},-1)'>-</button><strong>${cartQty(i.id)}</strong><button onclick='addCart(${JSON.stringify(i.id)},${JSON.stringify(i.name)},${i.price},1)'>+</button></div></div>`).join('')}
+    function cartQty(id){const f=STATE.cart.find(x=>x.menuId===id); return f?f.qty:0}
+    function addCart(id,name,price,d){const f=STATE.cart.find(x=>x.menuId===id); if(!f&&d>0) STATE.cart.push({menuId:id,name,price:Number(price),qty:1}); else if(f){f.qty+=d; if(f.qty<=0) STATE.cart=STATE.cart.filter(x=>x.menuId!==id)} renderMenuGrid(); renderCart()}
+    function renderCart(){cartLines.innerHTML=STATE.cart.length?STATE.cart.map(i=>`<div class="order-line"><div><strong>${i.name}</strong><div class="muted">฿${money(i.price,true)}</div></div><div>${i.qty}</div><div>฿${money(i.qty*i.price,true)}</div></div>`).join(''):'<div class="muted">ยังไม่มีรายการ</div>'; cartTotal.textContent='฿'+money(STATE.cart.reduce((s,i)=>s+i.qty*i.price,0),true)}
+    function clearCart(){STATE.cart=[]; renderMenuGrid(); renderCart(); posCustomerName.value=''; posNote.value=''}
+    function submitOrder(){if(!STATE.cart.length) return toast('ยังไม่มีรายการ'); const table=STATE.tables.find(t=>t.id===posTable.value); google.script.run.withSuccessHandler(()=>{toast('สร้างออเดอร์แล้ว'); clearCart(); loadDashboard();}).withFailureHandler(e=>toast(e.message||'สร้างออเดอร์ไม่สำเร็จ')).createOrder({tableId:table.id,tableNo:table.tableNo,customerName:posCustomerName.value,note:posNote.value,items:STATE.cart,staffId:STATE.user.id,source:'staff'})}
+
+    function loadOrders(){google.script.run.withSuccessHandler(list=>{STATE.orders=list; ordersWrap.innerHTML=`<table><thead><tr><th>เวลา</th><th>โต๊ะ</th><th>รายการ</th><th>ยอด</th><th>สถานะ</th><th></th></tr></thead><tbody>${list.map(o=>`<tr><td>${fmtDate(o.createdAt)}</td><td>โต๊ะ ${o.tableNo||'-'}</td><td>${o.itemsArray.map(i=>`${i.name} x${i.qty}`).join('<br>')}</td><td>฿${money(o.totalAmount,true)}</td><td>${o.status}</td><td><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-line" onclick="updateOrder('${o.id}','cooking')">cooking</button><button class="btn btn-line" onclick="updateOrder('${o.id}','ready')">ready</button><button class="btn btn-line" onclick="updateOrder('${o.id}','served')">served</button>${o.status!=='paid'?`<button class="btn btn-pri" onclick="openPayment('${o.id}')">รับเงิน</button>`:''}</div></td></tr>`).join('')}</tbody></table>`||'<div class="muted">ไม่มีข้อมูล</div>'}).getOrders({status:orderFilter.value})}
+    function updateOrder(id,status){google.script.run.withSuccessHandler(()=>{toast('อัปเดตแล้ว'); loadOrders(); loadDashboard(); loadKitchen();}).withFailureHandler(e=>toast(e.message||'อัปเดตไม่สำเร็จ')).updateOrderStatus(id,status)}
+    function openPayment(orderId){const o=STATE.orders.find(x=>x.id===orderId); if(!o) return; showModal('ชำระเงิน',`
+      <div><strong>โต๊ะ ${o.tableNo}</strong><div class="muted">ยอดรวม ฿${money(o.totalAmount,true)}</div></div>
+      <div class="field"><label>รูปแบบชำระ</label><select id="payMode"><option value="single">ชำระครั้งเดียว</option><option value="split">split bill</option></select></div>
+      <div id="paySingle">
+        <div class="field"><label>วิธีชำระ</label><select id="payMethod"><option value="cash">เงินสด</option><option value="transfer">โอน</option><option value="qr">QR</option><option value="card">บัตร</option></select></div>
+        <div class="field"><label>รับเงินมา</label><input id="cashReceived" type="number" value="${o.totalAmount}"></div>
+      </div>
+      <div id="paySplit" class="hidden">
+        <div class="muted">รวมทุกบรรทัดต้องเท่ากับ ฿${money(o.totalAmount,true)}</div>
+        <div class="field"><label>ส่วนที่ 1</label><select id="sp1m"><option value="cash">เงินสด</option><option value="transfer">โอน</option><option value="qr">QR</option><option value="card">บัตร</option></select><input id="sp1a" type="number" placeholder="จำนวนเงิน"><input id="sp1c" type="number" placeholder="รับเงินมา (กรณีสด)"></div>
+        <div class="field"><label>ส่วนที่ 2</label><select id="sp2m"><option value="cash">เงินสด</option><option value="transfer">โอน</option><option value="qr">QR</option><option value="card">บัตร</option></select><input id="sp2a" type="number" placeholder="จำนวนเงิน"><input id="sp2c" type="number" placeholder="รับเงินมา (กรณีสด)"></div>
+        <div class="field"><label>ส่วนที่ 3</label><select id="sp3m"><option value="cash">เงินสด</option><option value="transfer">โอน</option><option value="qr">QR</option><option value="card">บัตร</option></select><input id="sp3a" type="number" placeholder="จำนวนเงิน"><input id="sp3c" type="number" placeholder="รับเงินมา (กรณีสด)"></div>
+      </div>
+    `, `<button class="btn btn-line" onclick="hideModal()">ปิด</button><button class="btn btn-pri" onclick="confirmPayment('${orderId}')">ยืนยันรับเงิน</button>`); document.getElementById('payMode').onchange=()=>{paySingle.classList.toggle('hidden',payMode.value!=='single');paySplit.classList.toggle('hidden',payMode.value!=='split')}}
+    function confirmPayment(orderId){const mode=document.getElementById('payMode').value; if(mode==='single'){google.script.run.withSuccessHandler(()=>{hideModal(); toast('รับเงินแล้ว'); loadOrders(); loadDashboard(); loadShift();}).withFailureHandler(e=>toast(e.message||'รับเงินไม่สำเร็จ')).processPayment({orderId,method:payMethod.value,cashReceived:Number(cashReceived.value||0),staffId:STATE.user.id})} else {const lines=[['sp1'],['sp2'],['sp3']].map(([k])=>({method:document.getElementById(k+'m').value,amount:Number(document.getElementById(k+'a').value||0),cashReceived:Number(document.getElementById(k+'c').value||document.getElementById(k+'a').value||0)})).filter(x=>x.amount>0); google.script.run.withSuccessHandler(()=>{hideModal(); toast('split bill สำเร็จ'); loadOrders(); loadDashboard(); loadShift();}).withFailureHandler(e=>toast(e.message||'split bill ไม่สำเร็จ')).processPayment({orderId,splitLines:lines,staffId:STATE.user.id})}}
+
+    function loadKitchen(){google.script.run.withSuccessHandler(list=>{kitchenOrders.innerHTML=`<table><thead><tr><th>เวลา</th><th>โต๊ะ</th><th>รายการ</th><th>สถานะ</th></tr></thead><tbody>${list.filter(o=>['pending','cooking','ready'].includes(o.status)).map(o=>`<tr><td>${fmtDate(o.createdAt)}</td><td>${o.tableNo}</td><td>${o.itemsArray.map(i=>`${i.name} x${i.qty}`).join('<br>')}</td><td>${o.status}</td></tr>`).join('')}</tbody></table>`||'<div class="muted">ไม่มีคิวครัว</div>'}).getOrders({status:'all'}); google.script.run.withSuccessHandler(rows=>{printQueue.innerHTML=`<table><thead><tr><th>เวลา</th><th>อ้างอิง</th><th>สถานะ</th><th></th></tr></thead><tbody>${rows.map(r=>`<tr><td>${fmtDate(r.createdAt)}</td><td>${r.referenceId}</td><td>${r.status}</td><td>${r.status!=='printed'?`<button class="btn btn-line" onclick="donePrint('${r.id}')">ทำเครื่องหมายพิมพ์แล้ว</button>`:''}</td></tr>`).join('')}</tbody></table>`||'<div class="muted">ไม่มีคิวพิมพ์</div>'}).getPrintQueue('all')}
+    function donePrint(id){google.script.run.withSuccessHandler(()=>{toast('อัปเดตคิวพิมพ์แล้ว'); loadKitchen()}).withFailureHandler(e=>toast(e.message||'ไม่สำเร็จ')).markPrintQueueDone(id,'manual')}
+
+    function loadCalls(){google.script.run.withSuccessHandler(rows=>{callsWrap.innerHTML=`<table><thead><tr><th>เวลา</th><th>โต๊ะ</th><th>ประเภท</th><th>ข้อความ</th><th></th></tr></thead><tbody>${rows.map(r=>`<tr><td>${fmtDate(r.createdAt)}</td><td>${r.tableNo}</td><td>${r.type}</td><td>${r.message||'-'}</td><td>${r.status==='open'?`<button class="btn btn-pri" onclick="handleCall('${r.id}')">รับเรื่องแล้ว</button>`:'handled'}</td></tr>`).join('')}</tbody></table>`||'<div class="muted">ไม่มีคำขอ</div>'}).getServiceCalls({status:'open'})}
+    function handleCall(id){google.script.run.withSuccessHandler(()=>{toast('ปิดงานแล้ว'); loadCalls(); loadDashboard()}).withFailureHandler(e=>toast(e.message||'ไม่สำเร็จ')).handleServiceCall(id,STATE.user.id)}
+
+    function loadInventory(){google.script.run.withSuccessHandler(res=>{STATE.inventory=res.items; inventoryWrap.innerHTML=`<div class="muted" style="margin-bottom:10px">มูลค่าสต๊อก / Stock Take: ฿${money(res.totalStockValue,true)} • ของใกล้หมด: ${res.lowStockCount}</div><table><thead><tr><th>ชื่อ</th><th>คงเหลือ</th><th>จุดสั่งซื้อ</th><th>ต้นทุน/หน่วย</th></tr></thead><tbody>${res.items.map(i=>`<tr><td>${i.name}<div class="muted">${i.category}</div></td><td>${i.qtyOnHand} ${i.unit}${i.qtyOnHand<=i.reorderPoint?'<div style="color:#dc2626">ใกล้หมด</div>':''}</td><td>${i.reorderPoint}</td><td>฿${money(i.costPerUnit,true)}</td></tr>`).join('')}</tbody></table>`; adjStockId.innerHTML=res.items.map(i=>`<option value="${i.id}">${i.name}</option>`).join('')}).getInventorySummary(); google.script.run.withSuccessHandler(rows=>{stockMoves.innerHTML=`<h4>รายการเคลื่อนไหวล่าสุด</h4><table><thead><tr><th>เวลา</th><th>รายการ</th><th>จำนวน</th><th>คงเหลือ</th></tr></thead><tbody>${rows.slice(0,10).map(r=>`<tr><td>${fmtDate(r.createdAt)}</td><td>${r.stockName}</td><td>${r.qtyDelta}</td><td>${r.balanceAfter}</td></tr>`).join('')}</tbody></table>`}).getStockMovements(20)}
+    function adjustStockNow(mode){const qty=Math.abs(Number(adjQty.value||0)); if(!qty) return toast('กรอกจำนวนก่อน'); google.script.run.withSuccessHandler(()=>{toast('ปรับสต๊อก / Stock Takeแล้ว'); adjQty.value=''; adjNote.value=''; loadInventory(); loadDashboard()}).withFailureHandler(e=>toast(e.message||'ไม่สำเร็จ')).adjustStock({stockId:adjStockId.value,qtyDelta:mode==='in'?qty:-qty,movementType:mode,referenceType:'manual',note:adjNote.value,actorId:STATE.user.id})}
+    function openStockModal(){showModal('เพิ่มวัตถุดิบ',`<div class="field"><label>ชื่อ</label><input id="smName"></div><div class="field"><label>หมวด</label><input id="smCat"></div><div class="field"><label>หน่วย</label><input id="smUnit"></div><div class="field"><label>คงเหลือเริ่มต้น</label><input id="smQty" type="number"></div><div class="field"><label>จุดสั่งซื้อ</label><input id="smRe" type="number"></div><div class="field"><label>ต้นทุนต่อหน่วย</label><input id="smCost" type="number"></div>`,`<button class="btn btn-line" onclick="hideModal()">ปิด</button><button class="btn btn-pri" onclick="saveStockModal()">บันทึก</button>`)}
+    function saveStockModal(){google.script.run.withSuccessHandler(()=>{hideModal(); toast('เพิ่มวัตถุดิบแล้ว'); loadInventory()}).withFailureHandler(e=>toast(e.message||'บันทึกไม่สำเร็จ')).saveStockItem({name:smName.value,category:smCat.value,unit:smUnit.value,qtyOnHand:Number(smQty.value||0),reorderPoint:Number(smRe.value||0),costPerUnit:Number(smCost.value||0)})}
+
+
+    function loadTableOps(){google.script.run.withSuccessHandler(tables=>{STATE.tables=tables; const opts=tables.map(t=>`<option value="${t.id}">โต๊ะ ${t.tableNo} • ${t.status}</option>`).join(''); transferFrom.innerHTML=opts; transferTo.innerHTML=opts; mergeTarget.innerHTML=opts; tableOpsWrap.innerHTML=`<table><thead><tr><th>โต๊ะ</th><th>โซน</th><th>ที่นั่ง</th><th>สถานะ</th></tr></thead><tbody>${tables.map(t=>`<tr><td>${t.tableNo}</td><td>${t.zone}</td><td>${t.seats}</td><td>${t.status}</td></tr>`).join('')}</tbody></table>`}).getTables()}
+    function tableIdByNo(no){const t=(STATE.tables||[]).find(x=>String(x.tableNo)===String(no).trim()); return t?t.id:''}
+    function transferTableNow(){google.script.run.withSuccessHandler(()=>{toast('ย้ายโต๊ะแล้ว'); transferNote.value=''; loadTableOps(); loadOrders(); loadDashboard()}).withFailureHandler(e=>toast(e.message||'ย้ายโต๊ะไม่สำเร็จ')).transferTable({fromTableId:transferFrom.value,toTableId:transferTo.value,note:transferNote.value,actorId:STATE.user.id})}
+    function mergeBillsNow(){const ids=(mergeSources.value||'').split(',').map(s=>tableIdByNo(s)).filter(Boolean); if(!ids.length) return toast('กรอกโต๊ะต้นทางก่อน'); google.script.run.withSuccessHandler(()=>{toast('รวมบิลแล้ว'); mergeSources.value=''; mergeNote.value=''; loadTableOps(); loadOrders(); loadDashboard()}).withFailureHandler(e=>toast(e.message||'รวมบิลไม่สำเร็จ')).mergeTableBills({sourceTableIds:ids,targetTableId:mergeTarget.value,note:mergeNote.value,actorId:STATE.user.id})}
+
+    function addPoLine(pref){const row=document.createElement('div'); row.className='order-line'; row.innerHTML=`<select class="po-stock"><option value="">เลือกวัตถุดิบ</option>${(STATE.inventory||[]).map(i=>`<option value="${i.id}" ${pref&&pref.stockId===i.id?'selected':''}>${i.name}</option>`).join('')}</select><input class="po-qty" type="number" step="0.01" placeholder="จำนวน" value="${pref&&pref.qty?pref.qty:''}"><input class="po-cost" type="number" step="0.01" placeholder="ต้นทุน/หน่วย" value="${pref&&pref.unitCost?pref.unitCost:''}"><button class="btn btn-line" onclick="this.parentNode.remove()">ลบ</button>`; poBuilder.appendChild(row)}
+    function openSupplierModal(){showModal('เพิ่มซัพพลายเออร์',`<div class="field"><label>ชื่อ</label><input id="supName"></div><div class="field"><label>ผู้ติดต่อ</label><input id="supContact"></div><div class="field"><label>เบอร์โทร</label><input id="supPhone"></div><div class="field"><label>เครดิต (วัน)</label><input id="supTerm" type="number" value="0"></div><div class="field"><label>ที่อยู่</label><textarea id="supAddress"></textarea></div>`,`<button class="btn btn-line" onclick="hideModal()">ปิด</button><button class="btn btn-pri" onclick="saveSupplierNow()">บันทึก</button>`)}
+    function saveSupplierNow(){google.script.run.withSuccessHandler(()=>{hideModal(); toast('เพิ่มซัพพลายเออร์แล้ว'); loadProcurement()}).withFailureHandler(e=>toast(e.message||'บันทึกไม่สำเร็จ')).saveSupplier({name:supName.value,contactName:supContact.value,phone:supPhone.value,paymentTermDays:Number(supTerm.value||0),address:supAddress.value})}
+    function loadProcurement(){google.script.run.withSuccessHandler(sups=>{STATE.suppliers=sups; supplierWrap.innerHTML=`<table><thead><tr><th>ชื่อ</th><th>ติดต่อ</th><th>เครดิต</th></tr></thead><tbody>${sups.map(s=>`<tr><td>${s.name}</td><td>${s.phone||'-'}<div class="muted">${s.contactName||''}</div></td><td>${s.paymentTermDays} วัน</td></tr>`).join('')}</tbody></table>`; poSupplier.innerHTML=`<option value="">เลือกซัพพลายเออร์</option>${sups.map(s=>`<option value="${s.id}">${s.name}</option>`).join('')}`}).getSuppliers(); google.script.run.withSuccessHandler(res=>{STATE.inventory=res.items; if(!poBuilder.children.length) addPoLine();}).getInventorySummary(); google.script.run.withSuccessHandler(rows=>{poWrap.innerHTML=`<table><thead><tr><th>PO</th><th>ซัพพลายเออร์</th><th>สถานะ</th><th>ยอด</th><th></th></tr></thead><tbody>${rows.map(r=>`<tr><td>${r.id}<div class="muted">${r.poDate||''}</div></td><td>${r.supplierName}</td><td>${r.status}</td><td>฿${money(r.totalAmount,true)}</td><td>${r.status!=='received'?`<button class="btn btn-line" onclick="openReceiveModal('${r.id}')">รับเข้า</button>`:''}</td></tr>`).join('')}</tbody></table>`; STATE.purchaseOrders=rows}).getPurchaseOrders('all'); google.script.run.withSuccessHandler(rows=>{receiptWrap.innerHTML=`<table><thead><tr><th>เวลา</th><th>PO</th><th>ซัพพลายเออร์</th><th>ยอด</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${fmtDate(r.receivedAt)}</td><td>${r.poId}</td><td>${r.supplierName}</td><td>฿${money(r.totalAmount,true)}</td></tr>`).join('')}</tbody></table>`}).getGoodsReceipts(20)}
+    function createPONow(){const items=[...poBuilder.querySelectorAll('.order-line')].map(r=>({stockId:r.querySelector('.po-stock').value,qty:Number(r.querySelector('.po-qty').value||0),unitCost:Number(r.querySelector('.po-cost').value||0)})).filter(x=>x.stockId&&x.qty>0&&x.unitCost>=0); google.script.run.withSuccessHandler(res=>{toast('สร้าง PO แล้ว: '+res.poId); poBuilder.innerHTML=''; addPoLine(); poNote.value=''; loadProcurement()}).withFailureHandler(e=>toast(e.message||'สร้าง PO ไม่สำเร็จ')).createPurchaseOrder({supplierId:poSupplier.value,expectedDate:poExpected.value,note:poNote.value,items,actorId:STATE.user.id})}
+    function openReceiveModal(poId){const po=(STATE.purchaseOrders||[]).find(x=>x.id===poId); if(!po) return; showModal('รับสินค้าเข้า '+poId, `<div class="muted" style="margin-bottom:10px">${po.supplierName}</div>${po.items.map(i=>`<div class="order-line"><div>${i.stockName}<div class="muted">สั่ง ${i.qty} / รับแล้ว ${i.receivedQty}</div></div><input id="rc_${i.stockId}" type="number" step="0.01" placeholder="รับเพิ่ม"><div>฿${money(i.unitCost,true)}</div></div>`).join('')}<div class="field"><label>เลขอ้างอิง</label><input id="rcRef"></div><div class="field"><label>หมายเหตุ</label><textarea id="rcNote"></textarea></div>`, `<button class="btn btn-line" onclick="hideModal()">ปิด</button><button class="btn btn-pri" onclick="receivePONow('${poId}')">ยืนยันรับเข้า</button>`)}
+    function receivePONow(poId){const po=(STATE.purchaseOrders||[]).find(x=>x.id===poId); const items=po.items.map(i=>({stockId:i.stockId,receivedQty:Number(document.getElementById('rc_'+i.stockId).value||0),unitCost:i.unitCost})).filter(x=>x.receivedQty>0); google.script.run.withSuccessHandler(()=>{hideModal(); toast('รับสินค้าเข้าแล้ว'); loadProcurement(); loadInventory()}).withFailureHandler(e=>toast(e.message||'รับเข้าไม่สำเร็จ')).receivePurchaseOrder({poId,items,referenceNo:rcRef.value,note:rcNote.value,actorId:STATE.user.id})}
+
+    function loadReports(){google.script.run.withSuccessHandler(list=>{const closed=list.filter(x=>x.status==='closed'); reportsWrap.innerHTML=`<div class="muted" style="margin-bottom:10px">เลือกรอบกะเพื่อพิมพ์รายงานปิดกะ</div><table><thead><tr><th>กะ</th><th>เปิด</th><th>ปิด</th><th>ส่วนต่าง</th><th></th></tr></thead><tbody>${closed.map(s=>`<tr><td>${s.id}</td><td>${fmtDate(s.openedAt)}</td><td>${fmtDate(s.closedAt)}</td><td>฿${money(s.cashDiff,true)}</td><td><button class="btn btn-line" onclick="printShiftReport('${s.id}')">พิมพ์รายงาน</button></td></tr>`).join('')}</tbody></table>` || '<div class="muted">ยังไม่มีกะที่ปิดแล้ว</div>'}).getAllShifts(20)}
+    function printShiftReport(shiftId){google.script.run.withSuccessHandler(res=>{const w=window.open('','_blank'); w.document.write(res.printableHtml); w.document.close(); w.focus(); setTimeout(()=>w.print(),300)}).withFailureHandler(e=>toast(e.message||'สร้างรายงานไม่สำเร็จ')).getCloseShiftPrintableData(shiftId)}
+
+    function loadShift(){google.script.run.withSuccessHandler(current=>{shiftMini.textContent=current?`เปิดกะอยู่ • ${fmtDate(current.openedAt)}`:'ยังไม่มีกะเปิดอยู่'; if(current){google.script.run.withSuccessHandler(sum=>{shiftWrap.innerHTML=`<div><strong>เปิดกะโดย ${current.openedByName||'-'}</strong><div class="muted">เวลา ${fmtDate(current.openedAt)}</div><div style="margin-top:10px">เงินเปิดกะ ฿${money(current.openingCash,true)}</div><div>คาดว่าเงินสดควรมี ฿${money(sum.expectedCash,true)}</div><div>ยอดขายกะนี้ ฿${money(sum.totalSales,true)}</div><div style="margin-top:12px"><button class="btn btn-warn" onclick="openCloseShift()">ปิดกะ</button></div></div>`}).getShiftSummary(current.id)} else {shiftWrap.innerHTML=`<div class="field"><label>เงินเปิดกะ</label><input id="openCash" type="number" value="0"></div><div class="field"><label>หมายเหตุ</label><textarea id="openShiftNote"></textarea></div><button class="btn btn-ok" onclick="openShiftNow()">เปิดกะ</button>`}}).getCurrentShift(); google.script.run.withSuccessHandler(rows=>{shiftList.innerHTML=`<table><thead><tr><th>เปิดกะ</th><th>สถานะ</th><th>ส่วนต่าง</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${fmtDate(r.openedAt)}</td><td>${r.status}</td><td>${r.status==='closed'?'฿'+money(r.cashDiff,true):'-'}</td></tr>`).join('')}</tbody></table>`}).getAllShifts(10)}
+    function openShiftNow(){google.script.run.withSuccessHandler(()=>{toast('เปิดกะแล้ว'); loadShift(); loadDashboard()}).withFailureHandler(e=>toast(e.message||'เปิดกะไม่สำเร็จ')).openShift({openingCash:Number(openCash.value||0),note:openShiftNote.value,actorId:STATE.user.id})}
+    function openCloseShift(){showModal('ปิดกะ',`<div class="field"><label>นับเงินสดจริงปลายกะ</label><input id="countedCash" type="number"></div><div class="field"><label>หมายเหตุ</label><textarea id="closeShiftNote"></textarea></div>`,`<button class="btn btn-line" onclick="hideModal()">ยกเลิก</button><button class="btn btn-danger" onclick="closeShiftNow()">ยืนยันปิดกะ</button>`)}
+    function closeShiftNow(){google.script.run.withSuccessHandler(res=>{hideModal(); toast('ปิดกะแล้ว'); loadShift(); loadDashboard();}).withFailureHandler(e=>toast(e.message||'ปิดกะไม่สำเร็จ')).closeShift({countedCash:Number(countedCash.value||0),note:closeShiftNote.value,actorId:STATE.user.id})}
+
+    function loadCustomerLinks(){google.script.run.withSuccessHandler(res=>{customerWrap.innerHTML=`<div class="muted" style="margin-bottom:10px">ใช้ลิงก์นี้กับ QR ประจำโต๊ะ</div><table><thead><tr><th>โต๊ะ</th><th>ลิงก์</th></tr></thead><tbody>${res.links.map(l=>`<tr><td>${l.tableNo}</td><td>${l.url?`<input value="${esc(l.url)}" readonly onclick="this.select()">`:'ยังไม่มี Web App URL'}</td></tr>`).join('')}</tbody></table>`}).getCustomerOrderingLinks()}
+
+    function loadSettings(){const s=STATE.settings||{}; stName.value=s.restaurantName||''; stPhone.value=s.restaurantPhone||''; stAddress.value=s.restaurantAddress||''; stCustomerUrl.value=s.customerWebappUrl||''; stVat.value=s.vatRate||0; stVatEnabled.checked=!!s.vatEnabled; stAutoQueue.checked=!!s.autoQueuePrint; stBridgeEnabled.checked=!!s.printerBridgeEnabled; stBridgeToken.value=s.printerBridgeToken||''; stBridgePrinter.value=s.printerBridgeDefaultPrinter||'Kitchen-1'; stBridgePoll.value=s.printerBridgePollSeconds||5; shiftMini.textContent='ตั้งค่าระบบ'}
+    function saveSettingsNow(){google.script.run.withSuccessHandler(()=>{toast('บันทึกแล้ว'); STATE.settings={restaurantName:stName.value,restaurantPhone:stPhone.value,restaurantAddress:stAddress.value,customerWebappUrl:stCustomerUrl.value,vatRate:Number(stVat.value||0),vatEnabled:stVatEnabled.checked,autoQueuePrint:stAutoQueue.checked,printerBridgeEnabled:stBridgeEnabled.checked,printerBridgeToken:stBridgeToken.value,printerBridgeDefaultPrinter:stBridgePrinter.value,printerBridgePollSeconds:Number(stBridgePoll.value||5)};}).withFailureHandler(e=>toast(e.message||'บันทึกไม่สำเร็จ')).saveSystemSettings({restaurantName:stName.value,restaurantPhone:stPhone.value,restaurantAddress:stAddress.value,customerWebappUrl:stCustomerUrl.value,vatRate:Number(stVat.value||0),vatEnabled:stVatEnabled.checked,autoQueuePrint:stAutoQueue.checked,printerBridgeEnabled:stBridgeEnabled.checked,printerBridgeToken:stBridgeToken.value,printerBridgeDefaultPrinter:stBridgePrinter.value,printerBridgePollSeconds:Number(stBridgePoll.value||5),currency:'THB'})}
+    function showDbInfo(){google.script.run.withSuccessHandler(res=>showModal('ฐานข้อมูล',`<div><strong>${res.name}</strong><div class="muted">Spreadsheet ID: ${res.spreadsheetId}</div><div style="margin-top:10px"><a target="_blank" href="${res.spreadsheetUrl}">เปิด Google Sheets</a></div></div>`,`<button class="btn btn-line" onclick="hideModal()">ปิด</button>`)).getDbInfo()}
+
+    function showModal(t,b,f){modalTitle.innerHTML=t; modalBody.innerHTML=b||''; modalFooter.innerHTML=f||''; modal.classList.add('show')}
+    function hideModal(){modal.classList.remove('show')}
+    function toast(msg){const el=toastEl(); el.textContent=msg; el.style.display='block'; clearTimeout(window.__t); window.__t=setTimeout(()=>el.style.display='none',2600)}
+    function toastEl(){return document.getElementById('toast')}
+    function money(n,fixed){return Number(n||0).toLocaleString('th-TH',{minimumFractionDigits:fixed?2:0,maximumFractionDigits:2})}
+    function fmtDate(v){if(!v) return '-'; try{return new Date(v).toLocaleString('th-TH')}catch(e){return v}}
+    function esc(v){return String(v||'').replace(/[&<>"']/g,s=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[s]))}
+  
+    function loadOrders(){
+      google.script.run.withSuccessHandler(list=>{
+        STATE.orders=list;
+        ordersWrap.innerHTML=`<table><thead><tr><th>เวลา</th><th>โต๊ะ</th><th>รายการ</th><th>ยอด</th><th>สถานะ</th><th></th></tr></thead><tbody>${
+          list.map(o=>`<tr>
+            <td>${fmtDate(o.createdAt)}</td>
+            <td>โต๊ะ ${o.tableNo||'-'}</td>
+            <td>${o.itemsArray.map(i=>`${i.name} x${i.qty}`).join('<br>')}</td>
+            <td>฿${money(o.totalAmount,true)}</td>
+            <td>${o.status}</td>
+            <td><div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn btn-line" onclick="updateOrder('${o.id}','cooking')">cooking</button>
+              <button class="btn btn-line" onclick="updateOrder('${o.id}','ready')">ready</button>
+              <button class="btn btn-line" onclick="updateOrder('${o.id}','served')">served</button>
+              ${o.status!=='paid'?`<button class="btn btn-pri" onclick="openPayment('${o.id}')">รับเงิน</button><button class="btn btn-warn" onclick="openVoidModal('${o.id}')">Void รายการ</button>`:`<button class="btn btn-line" onclick="openRefundModal('${o.id}')">Partial Refund</button>`}
+            </div></td>
+          </tr>`).join('')
+        }</tbody></table>` || '<div class="muted">ไม่มีข้อมูล</div>';
+      }).getOrders({status:orderFilter.value})
+    }
+
+    function openPayment(orderId){
+      const o=STATE.orders.find(x=>x.id===orderId); if(!o) return;
+      google.script.run.withSuccessHandler(res=>{
+        const items = res.items || [];
+        showModal('ชำระเงิน',`
+          <div><strong>โต๊ะ ${o.tableNo}</strong><div class="muted">ยอดรวม ฿${money(o.totalAmount,true)}</div></div>
+          <div class="field"><label>รูปแบบชำระ</label><select id="payMode"><option value="single">ชำระครั้งเดียว</option><option value="split">split bill</option><option value="person">split bill แยกเมนูรายคน</option></select></div>
+          <div id="paySingle">
+            <div class="field"><label>วิธีชำระ</label><select id="payMethod"><option value="cash">เงินสด</option><option value="transfer">โอน</option><option value="qr">QR</option><option value="card">บัตร</option></select></div>
+            <div class="field"><label>รับเงินมา</label><input id="cashReceived" type="number" value="${o.totalAmount}"></div>
+          </div>
+          <div id="paySplit" class="hidden">
+            <div class="muted">รวมทุกบรรทัดต้องเท่ากับ ฿${money(o.totalAmount,true)}</div>
+            <div class="field"><label>ส่วนที่ 1</label><select id="sp1m"><option value="cash">เงินสด</option><option value="transfer">โอน</option><option value="qr">QR</option><option value="card">บัตร</option></select><input id="sp1a" type="number" placeholder="จำนวนเงิน"><input id="sp1c" type="number" placeholder="รับเงินมา (กรณีสด)"></div>
+            <div class="field"><label>ส่วนที่ 2</label><select id="sp2m"><option value="cash">เงินสด</option><option value="transfer">โอน</option><option value="qr">QR</option><option value="card">บัตร</option></select><input id="sp2a" type="number" placeholder="จำนวนเงิน"><input id="sp2c" type="number" placeholder="รับเงินมา (กรณีสด)"></div>
+            <div class="field"><label>ส่วนที่ 3</label><select id="sp3m"><option value="cash">เงินสด</option><option value="transfer">โอน</option><option value="qr">QR</option><option value="card">บัตร</option></select><input id="sp3a" type="number" placeholder="จำนวนเงิน"><input id="sp3c" type="number" placeholder="รับเงินมา (กรณีสด)"></div>
+          </div>
+          <div id="payPerson" class="hidden">
+            <div class="muted" style="margin-bottom:8px">เลือกว่าเมนูไหนเป็นของใคร แล้วกำหนดวิธีจ่ายรายคน</div>
+            <table><thead><tr><th>รายการ</th><th>ยอด</th><th>คนที่จ่าย</th></tr></thead><tbody>
+              ${items.map(i=>`<tr><td>${i.name} x${i.qty}</td><td>฿${money(i.lineTotal,true)}</td><td><select id="pi_${i.id}"><option value="">เลือก</option><option value="P1">คนที่ 1</option><option value="P2">คนที่ 2</option><option value="P3">คนที่ 3</option></select></td></tr>`).join('')}
+            </tbody></table>
+            <div class="field"><label>คนที่ 1</label><select id="pp1m"><option value="cash">เงินสด</option><option value="transfer">โอน</option><option value="qr">QR</option><option value="card">บัตร</option></select><input id="pp1c" type="number" placeholder="รับเงินมา (เงินสด)"></div>
+            <div class="field"><label>คนที่ 2</label><select id="pp2m"><option value="cash">เงินสด</option><option value="transfer">โอน</option><option value="qr">QR</option><option value="card">บัตร</option></select><input id="pp2c" type="number" placeholder="รับเงินมา (เงินสด)"></div>
+            <div class="field"><label>คนที่ 3</label><select id="pp3m"><option value="cash">เงินสด</option><option value="transfer">โอน</option><option value="qr">QR</option><option value="card">บัตร</option></select><input id="pp3c" type="number" placeholder="รับเงินมา (เงินสด)"></div>
+          </div>
+        `, `<button class="btn btn-line" onclick="hideModal()">ปิด</button><button class="btn btn-pri" onclick="confirmPayment('${orderId}')">ยืนยันรับเงิน</button>`);
+        document.getElementById('payMode').onchange=()=>{
+          paySingle.classList.toggle('hidden',payMode.value!=='single');
+          paySplit.classList.toggle('hidden',payMode.value!=='split');
+          payPerson.classList.toggle('hidden',payMode.value!=='person');
+        };
+      }).getOrderPaymentSummary(orderId);
+    }
+
+    function confirmPayment(orderId){
+      const mode=document.getElementById('payMode').value;
+      const after=()=>{hideModal(); toast('รับเงินแล้ว'); loadOrders(); loadDashboard(); loadShift();};
+      if(mode==='single'){
+        google.script.run.withSuccessHandler(after).withFailureHandler(e=>toast(e.message||'รับเงินไม่สำเร็จ')).processPayment({orderId,method:payMethod.value,cashReceived:Number(cashReceived.value||0),staffId:STATE.user.id});
+      } else if(mode==='split'){
+        const lines=[['sp1'],['sp2'],['sp3']].map(([k])=>({method:document.getElementById(k+'m').value,amount:Number(document.getElementById(k+'a').value||0),cashReceived:Number(document.getElementById(k+'c').value||document.getElementById(k+'a').value||0)})).filter(x=>x.amount>0);
+        google.script.run.withSuccessHandler(after).withFailureHandler(e=>toast(e.message||'split bill ไม่สำเร็จ')).processPayment({orderId,splitLines:lines,staffId:STATE.user.id});
+      } else {
+        google.script.run.withSuccessHandler(res=>{
+          const items=res.items||[];
+          const by={P1:[],P2:[],P3:[]};
+          items.forEach(i=>{const who=(document.getElementById('pi_'+i.id)||{}).value; if(who) by[who].push(i.id)});
+          const payload=['P1','P2','P3'].map((k,idx)=>({person:'คนที่ '+(idx+1),itemIds:by[k],method:document.getElementById('pp'+(idx+1)+'m').value,cashReceived:Number(document.getElementById('pp'+(idx+1)+'c').value||0)})).filter(x=>x.itemIds.length);
+          google.script.run.withSuccessHandler(after).withFailureHandler(e=>toast(e.message||'split รายคนไม่สำเร็จ')).processPayment({orderId,personSplits:payload,staffId:STATE.user.id});
+        }).getOrderPaymentSummary(orderId);
+      }
+    }
+
+    function openVoidModal(orderId){
+      google.script.run.withSuccessHandler(res=>{
+        const items=(res.items||[]).filter(i=>i.lineTotal>0);
+        showModal('Void รายการ', `${items.map(i=>`<div class="field"><label><input type="checkbox" value="${i.id}" class="void-item"> ${i.name} x${i.qty} • ฿${money(i.lineTotal,true)}</label></div>`).join('')}<div class="field"><label>เหตุผล</label><textarea id="voidReason"></textarea></div>`, `<button class="btn btn-line" onclick="hideModal()">ปิด</button><button class="btn btn-warn" onclick="confirmVoid('${orderId}')">ยืนยัน Void</button>`);
+      }).getOrderPaymentSummary(orderId);
+    }
+    function confirmVoid(orderId){
+      const itemIds=[...document.querySelectorAll('.void-item:checked')].map(x=>x.value);
+      google.script.run.withSuccessHandler(()=>{hideModal(); toast('Void แล้ว'); loadOrders(); loadDashboard(); loadShift();}).withFailureHandler(e=>toast(e.message||'Void ไม่สำเร็จ')).voidOrderItems({orderId,itemIds,reason:voidReason.value,actorId:STATE.user.id});
+    }
+    function openRefundModal(orderId){
+      google.script.run.withSuccessHandler(res=>{
+        const items=(res.items||[]).filter(i=>i.lineTotal>0);
+        showModal('Partial Refund', `${items.map(i=>`<div class="field"><label><input type="checkbox" value="${i.id}" class="refund-item"> ${i.name} x${i.qty} • ฿${money(i.lineTotal,true)}</label></div>`).join('')}<div class="field"><label>เหตุผล</label><textarea id="refundReason"></textarea></div>`, `<button class="btn btn-line" onclick="hideModal()">ปิด</button><button class="btn btn-danger" onclick="confirmRefund('${orderId}')">ยืนยัน Refund</button>`);
+      }).getOrderPaymentSummary(orderId);
+    }
+    function confirmRefund(orderId){
+      const itemIds=[...document.querySelectorAll('.refund-item:checked')].map(x=>x.value);
+      google.script.run.withSuccessHandler(()=>{hideModal(); toast('Refund แล้ว'); loadOrders(); loadDashboard(); loadShift();}).withFailureHandler(e=>toast(e.message||'Refund ไม่สำเร็จ')).partialRefund({orderId,itemIds,reason:refundReason.value,actorId:STATE.user.id});
+    }
+
+    function openKDSPage(station){
+      google.script.run.withSuccessHandler(res=>{
+        const url=(res.appUrl||'') + '?page=kds&station=' + encodeURIComponent(station);
+        window.open(url,'_blank');
+      }).getCustomerOrderingLinks();
+    }
+
+    function loadKitchen(){
+      google.script.run.withSuccessHandler(list=>{
+        kitchenOrders.innerHTML=`<table><thead><tr><th>เวลา</th><th>โต๊ะ</th><th>สถานี</th><th>รายการ</th><th>สถานะ</th></tr></thead><tbody>${list.filter(o=>['pending','cooking','ready'].includes(o.status)).map(o=>{
+          const kitchenItems=o.itemsArray.filter(i=>!(i.name||'').includes('ชา'));
+          const barItems=o.itemsArray.filter(i=>(i.name||'').includes('ชา'));
+          return `<tr><td>${fmtDate(o.createdAt)}</td><td>${o.tableNo}</td><td>${barItems.length&&kitchenItems.length?'ครัว/บาร์':(barItems.length?'บาร์':'ครัว')}</td><td>${o.itemsArray.map(i=>`${i.name} x${i.qty}`).join('<br>')}</td><td>${o.status}</td></tr>`
+        }).join('')}</tbody></table>`||'<div class="muted">ไม่มีคิวครัว</div>';
+      }).getOrders({status:'all'});
+      google.script.run.withSuccessHandler(rows=>{
+        printQueue.innerHTML=`<table><thead><tr><th>เวลา</th><th>ประเภท</th><th>อ้างอิง</th><th>สถานะ</th><th></th></tr></thead><tbody>${rows.map(r=>`<tr><td>${fmtDate(r.createdAt)}</td><td>${r.queueType}</td><td>${r.referenceId}</td><td>${r.status}</td><td>${r.status!=='printed'?`<button class="btn btn-line" onclick="donePrint('${r.id}')">พิมพ์แล้ว</button>`:''}</td></tr>`).join('')}</tbody></table>`||'<div class="muted">ไม่มีคิวพิมพ์</div>';
+      }).getPrintQueue('all');
+      google.script.run.withSuccessHandler(res=>{
+        kdsLinks.innerHTML=`เปิดแยกจอสำหรับครัวและบาร์ได้จากปุ่มด้านบน หลัง deploy เป็น Web App แล้ว`;
+      }).getCustomerOrderingLinks();
+    }
+
+    function loadInventory(){
+      google.script.run.withSuccessHandler(res=>{
+        STATE.inventory=res.items;
+        inventoryWrap.innerHTML=`<div class="muted" style="margin-bottom:10px">มูลค่าสต๊อก: ฿${money(res.totalStockValue,true)} • ของใกล้หมด: ${res.lowStockCount}</div><table><thead><tr><th>ชื่อ</th><th>คงเหลือ</th><th>จุดสั่งซื้อ</th><th>ต้นทุน/หน่วย</th></tr></thead><tbody>${res.items.map(i=>`<tr><td>${i.name}<div class="muted">${i.category}</div></td><td>${i.qtyOnHand} ${i.unit}${i.qtyOnHand<=i.reorderPoint?'<div style="color:#dc2626">ใกล้หมด</div>':''}</td><td>${i.reorderPoint}</td><td>฿${money(i.costPerUnit,true)}</td></tr>`).join('')}</tbody></table>`;
+        adjStockId.innerHTML=res.items.map(i=>`<option value="${i.id}">${i.name}</option>`).join('');
+      }).getInventorySummary();
+      google.script.run.withSuccessHandler(rows=>{
+        stockMoves.innerHTML=`<h4>รายการเคลื่อนไหวล่าสุด</h4><table><thead><tr><th>เวลา</th><th>รายการ</th><th>จำนวน</th><th>คงเหลือ</th></tr></thead><tbody>${rows.slice(0,10).map(r=>`<tr><td>${fmtDate(r.createdAt)}</td><td>${r.stockName}</td><td>${r.qtyDelta}</td><td>${r.balanceAfter}</td></tr>`).join('')}</tbody></table>`
+      }).getStockMovements(20);
+      google.script.run.withSuccessHandler(rows=>{
+        stockTakeWrap.innerHTML=`<table><thead><tr><th>รอบนับ</th><th>วันที่</th><th>สถานะ</th><th></th></tr></thead><tbody>${rows.map(r=>`<tr><td>${r.id}</td><td>${r.countDate}</td><td>${r.status}</td><td>${r.status!=='applied'?`<button class="btn btn-line" onclick="openApplyStockTake('${r.id}')">นับ/Apply</button>`:'applied'}</td></tr>`).join('')}</tbody></table>`
+      }).getStockCountSessions(20);
+    }
+
+    function openStockTakeModal(){
+      showModal('เริ่ม Stock Take', `<div class="field"><label>วันที่นับ</label><input id="stDate" type="date"></div><div class="field"><label>หมายเหตุ</label><textarea id="stNote"></textarea></div>`, `<button class="btn btn-line" onclick="hideModal()">ยกเลิก</button><button class="btn btn-pri" onclick="createStockTakeNow()">สร้างรอบนับ</button>`);
+      const today=new Date().toISOString().slice(0,10); document.getElementById('stDate').value=today;
+    }
+    function createStockTakeNow(){
+      google.script.run.withSuccessHandler(res=>{hideModal(); toast('สร้างรอบนับแล้ว'); loadInventory(); openApplyStockTake(res.stockCountId)}).withFailureHandler(e=>toast(e.message||'ไม่สำเร็จ')).createStockCountSession({countDate:stDate.value,note:stNote.value,actorId:STATE.user.id});
+    }
+    function openApplyStockTake(id){
+      google.script.run.withSuccessHandler(res=>{
+        showModal('Stock Take '+id, `${res.lines.map(l=>`<div class="order-line"><div>${l.stockName}<div class="muted">ระบบ ${l.systemQty}</div></div><input id="ct_${l.id}" type="number" step="0.01" placeholder="นับได้จริง" value="${l.countedQty!==''?l.countedQty:''}"><input id="nt_${l.id}" placeholder="หมายเหตุ" value="${esc(l.note||'')}"></div>`).join('')}`, `<button class="btn btn-line" onclick="hideModal()">ปิด</button><button class="btn btn-pri" onclick="applyStockTakeNow('${id}', ${res.lines.length})">Apply</button>`)
+      }).getStockCountDetail(id);
+    }
+    function applyStockTakeNow(id, count){
+      const lines=[];
+      for(let i=0;i<count;i++){}
+      document.querySelectorAll('[id^="ct_"]').forEach(inp=>{
+        const lid=inp.id.replace('ct_','');
+        lines.push({id:lid,countedQty:Number(inp.value||0),note:(document.getElementById('nt_'+lid)||{}).value||''})
+      });
+      google.script.run.withSuccessHandler(()=>{hideModal(); toast('Apply stock take แล้ว'); loadInventory();}).withFailureHandler(e=>toast(e.message||'Apply ไม่สำเร็จ')).applyStockCount({stockCountId:id,lines,actorId:STATE.user.id});
+    }
+
+    function loadProcurement(){
+      google.script.run.withSuccessHandler(sups=>{
+        STATE.suppliers=sups;
+        supplierWrap.innerHTML=`<table><thead><tr><th>ชื่อ</th><th>ติดต่อ</th><th>เครดิต</th></tr></thead><tbody>${sups.map(s=>`<tr><td>${s.name}</td><td>${s.phone||'-'}<div class="muted">${s.contactName||''}</div></td><td>${s.paymentTermDays} วัน</td></tr>`).join('')}</tbody></table>`;
+        poSupplier.innerHTML=`<option value="">เลือกซัพพลายเออร์</option>${sups.map(s=>`<option value="${s.id}">${s.name}</option>`).join('')}`;
+        spSupplier.innerHTML=`<option value="">เลือกซัพพลายเออร์</option>${sups.map(s=>`<option value="${s.id}">${s.name}</option>`).join('')}`;
+      }).getSuppliers();
+      google.script.run.withSuccessHandler(res=>{STATE.inventory=res.items; if(!poBuilder.children.length) addPoLine();}).getInventorySummary();
+      google.script.run.withSuccessHandler(rows=>{poWrap.innerHTML=`<table><thead><tr><th>PO</th><th>ซัพพลายเออร์</th><th>สถานะ</th><th>ยอด</th><th></th></tr></thead><tbody>${rows.map(r=>`<tr><td>${r.id}<div class="muted">${r.poDate||''}</div></td><td>${r.supplierName}</td><td>${r.status}</td><td>฿${money(r.totalAmount,true)}</td><td>${r.status!=='received'?`<button class="btn btn-line" onclick="openReceiveModal('${r.id}')">รับเข้า</button>`:''}</td></tr>`).join('')}</tbody></table>`; STATE.purchaseOrders=rows}).getPurchaseOrders('all');
+      google.script.run.withSuccessHandler(rows=>{receiptWrap.innerHTML=`<table><thead><tr><th>เวลา</th><th>PO</th><th>ซัพพลายเออร์</th><th>ยอด</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${fmtDate(r.receivedAt)}</td><td>${r.poId}</td><td>${r.supplierName}</td><td>฿${money(r.totalAmount,true)}</td></tr>`).join('')}</tbody></table>`}).getGoodsReceipts(20);
+      google.script.run.withSuccessHandler(bals=>{
+        google.script.run.withSuccessHandler(payments=>{
+          supplierPaymentWrap.innerHTML=`<div class="muted" style="margin-bottom:10px">คงค้างต่อซัพพลายเออร์</div><table><thead><tr><th>ซัพพลายเออร์</th><th>รับเข้า</th><th>จ่ายแล้ว</th><th>คงค้าง</th></tr></thead><tbody>${bals.map(b=>`<tr><td>${b.supplierName}</td><td>฿${money(b.totalReceived,true)}</td><td>฿${money(b.totalPaid,true)}</td><td>฿${money(b.balance,true)}</td></tr>`).join('')}</tbody></table><h4>การจ่ายล่าสุด</h4><table><thead><tr><th>เวลา</th><th>ซัพพลายเออร์</th><th>จำนวน</th><th>วิธี</th></tr></thead><tbody>${payments.map(p=>`<tr><td>${fmtDate(p.paidAt)}</td><td>${p.supplierName}</td><td>฿${money(p.amount,true)}</td><td>${p.method}</td></tr>`).join('')}</tbody></table>`;
+        }).getSupplierPayments(20);
+      }).getSupplierBalances();
+    }
+    function saveSupplierPaymentNow(){
+      google.script.run.withSuccessHandler(()=>{toast('บันทึกการจ่ายแล้ว'); spAmount.value=''; spRef.value=''; spNote.value=''; spPoId.value=''; loadProcurement();}).withFailureHandler(e=>toast(e.message||'บันทึกไม่สำเร็จ')).saveSupplierPayment({supplierId:spSupplier.value,poId:spPoId.value,amount:Number(spAmount.value||0),method:spMethod.value,referenceNo:spRef.value,note:spNote.value,actorId:STATE.user.id});
+    }
+
+    function loadShift(){
+      google.script.run.withSuccessHandler(current=>{
+        shiftMini.textContent=current?`เปิดกะอยู่ • ${fmtDate(current.openedAt)}`:'ยังไม่มีกะเปิดอยู่';
+        if(current){
+          google.script.run.withSuccessHandler(sum=>{
+            shiftWrap.innerHTML=`<div><strong>เปิดกะโดย ${current.openedByName||'-'}</strong><div class="muted">เวลา ${fmtDate(current.openedAt)}</div><div style="margin-top:10px">เงินเปิดกะ ฿${money(current.openingCash,true)}</div><div>คาดว่าเงินสดควรมี ฿${money(sum.expectedCash,true)}</div><div>ยอดขายกะนี้ ฿${money(sum.totalSales,true)}</div><div style="margin-top:12px"><button class="btn btn-warn" onclick="openCloseShift()">ปิดกะ</button></div></div>`
+          }).getShiftSummary(current.id);
+          google.script.run.withSuccessHandler(adv=>{
+            shiftAdvWrap.innerHTML=`<div class="grid stats">${statCard('ยอดขายกะนี้','฿'+money(adv.summary.totalSales,true))}${statCard('Refund','฿'+money(adv.refunds.total,true))}${statCard('Void','฿'+money(adv.voids.total,true))}${statCard('จ่ายเจ้าหนี้','฿'+money(adv.supplierPayments.total,true))}</div><div class="two" style="margin-top:14px"><div class="card"><h4 style="margin-top:0">วิธีชำระ</h4><table><thead><tr><th>วิธี</th><th>ยอด</th></tr></thead><tbody>${Object.keys(adv.byMethod).map(k=>`<tr><td>${k}</td><td>฿${money(adv.byMethod[k],true)}</td></tr>`).join('')}</tbody></table></div><div class="card"><h4 style="margin-top:0">เมนูขายดีในกะ</h4><table><thead><tr><th>เมนู</th><th>จำนวน</th></tr></thead><tbody>${adv.topItems.map(i=>`<tr><td>${i.name}</td><td>${i.qty}</td></tr>`).join('')}</tbody></table></div></div>`
+          }).getAdvancedShiftDashboard(current.id);
+        } else {
+          shiftWrap.innerHTML=`<div class="field"><label>เงินเปิดกะ</label><input id="openCash" type="number" value="0"></div><div class="field"><label>หมายเหตุ</label><textarea id="openShiftNote"></textarea></div><button class="btn btn-ok" onclick="openShiftNow()">เปิดกะ</button>`;
+          shiftAdvWrap.innerHTML='<div class="muted">ยังไม่มีกะเปิดอยู่</div>';
+        }
+      }).getCurrentShift();
+      google.script.run.withSuccessHandler(rows=>{shiftList.innerHTML=`<table><thead><tr><th>เปิดกะ</th><th>สถานะ</th><th>ส่วนต่าง</th><th></th></tr></thead><tbody>${rows.map(r=>`<tr><td>${fmtDate(r.openedAt)}</td><td>${r.status}</td><td>${r.status==='closed'?'฿'+money(r.cashDiff,true):'-'}</td><td>${r.status==='closed'?`<button class="btn btn-line" onclick="printShiftReport('${r.id}')">พิมพ์</button>`:''}</td></tr>`).join('')}</tbody></table>`}).getAllShifts(10)
+    }
+
+  
+
+    // ===== V5 UI PATCH =====
+    function renderPersonUnitTable(unitItems){
+      return `<table><thead><tr><th>หน่วยสินค้า</th><th>ยอด</th><th>คนที่จ่าย</th></tr></thead><tbody>${unitItems.map(u=>`<tr><td>${u.name} ชิ้นที่ ${u.unitNo}</td><td>฿${money(u.amount,true)}</td><td><select id="pu_${u.unitKey}"><option value="">เลือก</option><option value="P1">คนที่ 1</option><option value="P2">คนที่ 2</option><option value="P3">คนที่ 3</option><option value="P4">คนที่ 4</option></select></td></tr>`).join('')}</tbody></table>`;
+    }
+
+    function loadOrders(){
+      google.script.run.withSuccessHandler(list=>{
+        STATE.orders=list;
+        ordersWrap.innerHTML=`<table><thead><tr><th>เวลา</th><th>โต๊ะ</th><th>รายการ</th><th>ยอด/คงค้าง</th><th>สถานะ</th><th></th></tr></thead><tbody>${list.map(o=>`<tr><td>${fmtDate(o.createdAt)}</td><td>โต๊ะ ${o.tableNo||'-'}<div class="muted">${o.customerName||''}</div></td><td>${o.itemsArray.map(i=>`${i.name} x${i.qty}`).join('<br>')}</td><td>รวม ฿${money(o.totalAmount,true)}<div class="muted">จ่ายแล้ว ฿${money(o.paidAmount,true)} • คงค้าง ฿${money(o.balanceDue,true)}</div></td><td>${o.status}<div class="muted">${o.paymentStatus||'-'}</div></td><td><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-line" onclick="updateOrder('${o.id}','cooking')">cooking</button><button class="btn btn-line" onclick="updateOrder('${o.id}','ready')">ready</button><button class="btn btn-line" onclick="updateOrder('${o.id}','served')">served</button>${o.balanceDue>0.009?`<button class="btn btn-pri" onclick="openPayment('${o.id}')">รับเงิน</button><button class="btn btn-warn" onclick="openVoidModal('${o.id}')">Void รายการ</button>`:''}${o.paidAmount>0.009?`<button class="btn btn-line" onclick="openRefundModal('${o.id}')">Partial Refund</button><button class="btn btn-line" onclick="reprintReceiptNow('${o.id}')">Reprint</button><button class="btn btn-danger" onclick="openCancelReceiptModal('${o.id}')">Cancel Receipt</button>`:''}</div></td></tr>`).join('')}</tbody></table>` || '<div class="muted">ไม่มีข้อมูล</div>';
+      }).getOrders({status:orderFilter.value})
+    }
+
+    function openPayment(orderId){
+      const o=STATE.orders.find(x=>x.id===orderId); if(!o) return;
+      google.script.run.withSuccessHandler(res=>{
+        const unitItems = res.unitItems || [];
+        const fin = res.financials || {balanceDue:o.balanceDue,total:o.totalAmount,paidAmount:o.paidAmount};
+        showModal('ชำระเงิน',`<div><strong>โต๊ะ ${o.tableNo}</strong><div class="muted">ยอดรวม ฿${money(o.totalAmount,true)} • จ่ายแล้ว ฿${money(fin.paidAmount,true)} • คงค้าง ฿${money(fin.balanceDue,true)}</div></div><div class="field"><label>รูปแบบชำระ</label><select id="payMode"><option value="single">ชำระครั้งเดียว</option><option value="split">split bill</option><option value="person">split bill แยกจำนวนรายคน</option></select></div><div id="paySingle"><div class="field"><label>วิธีชำระ</label><select id="payMethod"><option value="cash">เงินสด</option><option value="transfer">โอน</option><option value="qr">QR</option><option value="card">บัตร</option></select></div><div class="field"><label>จำนวนที่รับรอบนี้</label><input id="payAmount" type="number" step="0.01" value="${fin.balanceDue}"></div><div class="field"><label>รับเงินมา</label><input id="cashReceived" type="number" step="0.01" value="${fin.balanceDue}"></div></div><div id="paySplit" class="hidden"><div class="muted">รอบนี้ชำระได้ไม่เกิน ฿${money(fin.balanceDue,true)} และจะชำระหลายรอบก็ได้</div><div class="field"><label>ส่วนที่ 1</label><select id="sp1m"><option value="cash">เงินสด</option><option value="transfer">โอน</option><option value="qr">QR</option><option value="card">บัตร</option></select><input id="sp1a" type="number" placeholder="จำนวนเงิน"><input id="sp1c" type="number" placeholder="รับเงินมา (กรณีสด)"></div><div class="field"><label>ส่วนที่ 2</label><select id="sp2m"><option value="cash">เงินสด</option><option value="transfer">โอน</option><option value="qr">QR</option><option value="card">บัตร</option></select><input id="sp2a" type="number" placeholder="จำนวนเงิน"><input id="sp2c" type="number" placeholder="รับเงินมา (กรณีสด)"></div><div class="field"><label>ส่วนที่ 3</label><select id="sp3m"><option value="cash">เงินสด</option><option value="transfer">โอน</option><option value="qr">QR</option><option value="card">บัตร</option></select><input id="sp3a" type="number" placeholder="จำนวนเงิน"><input id="sp3c" type="number" placeholder="รับเงินมา (กรณีสด)"></div><div class="field"><label>ส่วนที่ 4</label><select id="sp4m"><option value="cash">เงินสด</option><option value="transfer">โอน</option><option value="qr">QR</option><option value="card">บัตร</option></select><input id="sp4a" type="number" placeholder="จำนวนเงิน"><input id="sp4c" type="number" placeholder="รับเงินมา (กรณีสด)"></div></div><div id="payPerson" class="hidden"><div class="muted" style="margin-bottom:8px">แยกตามจำนวนสินค้าทีละชิ้นจากบรรทัดเดียว</div>${renderPersonUnitTable(unitItems)}<div class="field"><label>คนที่ 1</label><select id="pp1m"><option value="cash">เงินสด</option><option value="transfer">โอน</option><option value="qr">QR</option><option value="card">บัตร</option></select><input id="pp1c" type="number" placeholder="รับเงินมา (เงินสด)"></div><div class="field"><label>คนที่ 2</label><select id="pp2m"><option value="cash">เงินสด</option><option value="transfer">โอน</option><option value="qr">QR</option><option value="card">บัตร</option></select><input id="pp2c" type="number" placeholder="รับเงินมา (เงินสด)"></div><div class="field"><label>คนที่ 3</label><select id="pp3m"><option value="cash">เงินสด</option><option value="transfer">โอน</option><option value="qr">QR</option><option value="card">บัตร</option></select><input id="pp3c" type="number" placeholder="รับเงินมา (เงินสด)"></div><div class="field"><label>คนที่ 4</label><select id="pp4m"><option value="cash">เงินสด</option><option value="transfer">โอน</option><option value="qr">QR</option><option value="card">บัตร</option></select><input id="pp4c" type="number" placeholder="รับเงินมา (เงินสด)"></div></div>`, `<button class="btn btn-line" onclick="hideModal()">ปิด</button><button class="btn btn-pri" onclick="confirmPayment('${orderId}')">ยืนยันรับเงิน</button>`);
+        document.getElementById('payMode').onchange=()=>{paySingle.classList.toggle('hidden',payMode.value!=='single');paySplit.classList.toggle('hidden',payMode.value!=='split');payPerson.classList.toggle('hidden',payMode.value!=='person');};
+      }).getOrderPaymentSummary(orderId);
+    }
+
+    function confirmPayment(orderId){
+      const mode=document.getElementById('payMode').value;
+      const after=(res)=>{hideModal(); toast((res && res.financials && res.financials.paymentStatus==='paid')?'ชำระครบแล้ว':'บันทึกรับเงินรอบนี้แล้ว'); loadOrders(); loadDashboard(); loadShift();};
+      if(mode==='single'){
+        google.script.run.withSuccessHandler(after).withFailureHandler(e=>toast(e.message||'รับเงินไม่สำเร็จ')).processPayment({orderId,method:payMethod.value,amount:Number(payAmount.value||0),cashReceived:Number(cashReceived.value||0),staffId:STATE.user.id});
+      } else if(mode==='split'){
+        const lines=['sp1','sp2','sp3','sp4'].map(k=>({method:document.getElementById(k+'m').value,amount:Number(document.getElementById(k+'a').value||0),cashReceived:Number(document.getElementById(k+'c').value||document.getElementById(k+'a').value||0)})).filter(x=>x.amount>0);
+        google.script.run.withSuccessHandler(after).withFailureHandler(e=>toast(e.message||'split bill ไม่สำเร็จ')).processPayment({orderId,splitLines:lines,staffId:STATE.user.id});
+      } else {
+        google.script.run.withSuccessHandler(res=>{
+          const unitItems=res.unitItems||[]; const groups={P1:[],P2:[],P3:[],P4:[]};
+          unitItems.forEach(u=>{const who=(document.getElementById('pu_'+u.unitKey)||{}).value; if(who) groups[who].push(u.unitKey)});
+          const payload=['P1','P2','P3','P4'].map((k,idx)=>({person:'คนที่ '+(idx+1),unitKeys:groups[k],method:document.getElementById('pp'+(idx+1)+'m').value,cashReceived:Number(document.getElementById('pp'+(idx+1)+'c').value||0)})).filter(x=>x.unitKeys.length);
+          google.script.run.withSuccessHandler(after).withFailureHandler(e=>toast(e.message||'split รายคนไม่สำเร็จ')).processPayment({orderId,personUnitSplits:payload,staffId:STATE.user.id});
+        }).getOrderPaymentSummary(orderId);
+      }
+    }
+
+    function reprintReceiptNow(orderId){google.script.run.withSuccessHandler(res=>{toast('บันทึก reprint log แล้ว'); const w=window.open('','_blank'); w.document.write(res.printableHtml); w.document.close(); w.focus(); setTimeout(()=>w.print(),250); loadReports();}).withFailureHandler(e=>toast(e.message||'reprint ไม่สำเร็จ')).reprintReceipt({orderId,actorId:STATE.user.id,note:'reprint from POS'});}
+    function openCancelReceiptModal(orderId){google.script.run.withSuccessHandler(res=>{const active=(res.paymentLines||[]).filter(x=>!x.isCancelled); if(!active.length) return toast('ไม่พบใบเสร็จที่ยัง active'); showModal('Cancel Receipt', `<div class="muted" style="margin-bottom:10px">เลือก payment ที่ต้องการยกเลิก</div>${active.map(p=>`<div class="field"><label><input type="radio" name="cancelPaymentId" value="${p.paymentId}"> ${fmtDate(p.createdAt)} • ${p.method} • ฿${money(p.amount,true)} ${p.note?`<span class="muted">(${p.note})</span>`:''}</label></div>`).join('')}<div class="field"><label>เหตุผล</label><textarea id="cancelReceiptReason"></textarea></div>`, `<button class="btn btn-line" onclick="hideModal()">ปิด</button><button class="btn btn-danger" onclick="confirmCancelReceipt('${orderId}')">ยืนยันยกเลิก</button>`);}).getOrderPaymentSummary(orderId);}
+    function confirmCancelReceipt(orderId){const selected=document.querySelector('input[name="cancelPaymentId"]:checked'); if(!selected) return toast('กรุณาเลือกใบเสร็จ'); google.script.run.withSuccessHandler(()=>{hideModal(); toast('ยกเลิกใบเสร็จแล้ว'); loadOrders(); loadReports(); loadShift();}).withFailureHandler(e=>toast(e.message||'ยกเลิกไม่สำเร็จ')).cancelReceipt({orderId,paymentId:selected.value,reason:cancelReceiptReason.value,actorId:STATE.user.id});}
+
+    function loadProcurement(){
+      google.script.run.withSuccessHandler(sups=>{STATE.suppliers=sups; supplierWrap.innerHTML=`<table><thead><tr><th>ชื่อ</th><th>ติดต่อ</th><th>เครดิต</th></tr></thead><tbody>${sups.map(s=>`<tr><td>${s.name}</td><td>${s.phone||'-'}<div class="muted">${s.contactName||''}</div></td><td>${s.paymentTermDays} วัน</td></tr>`).join('')}</tbody></table>`; poSupplier.innerHTML=`<option value="">เลือกซัพพลายเออร์</option>${sups.map(s=>`<option value="${s.id}">${s.name}</option>`).join('')}`; spSupplier.innerHTML=`<option value="">เลือกซัพพลายเออร์</option>${sups.map(s=>`<option value="${s.id}">${s.name}</option>`).join('')}`;}).getSuppliers();
+      google.script.run.withSuccessHandler(res=>{STATE.inventory=res.items; if(!poBuilder.children.length) addPoLine();}).getInventorySummary();
+      google.script.run.withSuccessHandler(rows=>{poWrap.innerHTML=`<table><thead><tr><th>PO</th><th>ซัพพลายเออร์</th><th>สถานะ</th><th>ยอด</th><th></th></tr></thead><tbody>${rows.map(r=>`<tr><td>${r.id}<div class="muted">${r.poDate||''}</div></td><td>${r.supplierName}</td><td>${r.status}</td><td>฿${money(r.totalAmount,true)}</td><td>${r.status!=='received'?`<button class="btn btn-line" onclick="openReceiveModal('${r.id}')">รับเข้า</button>`:''}</td></tr>`).join('')}</tbody></table>`; STATE.purchaseOrders=rows}).getPurchaseOrders('all');
+      google.script.run.withSuccessHandler(rows=>{receiptWrap.innerHTML=`<table><thead><tr><th>เวลา</th><th>PO</th><th>ซัพพลายเออร์</th><th>ยอด</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${fmtDate(r.receivedAt)}</td><td>${r.poId}</td><td>${r.supplierName}</td><td>฿${money(r.totalAmount,true)}</td></tr>`).join('')}</tbody></table>`}).getGoodsReceipts(20);
+      google.script.run.withSuccessHandler(bals=>{google.script.run.withSuccessHandler(payments=>{google.script.run.withSuccessHandler(aging=>{supplierPaymentWrap.innerHTML=`<div class="muted" style="margin-bottom:10px">คงค้างต่อซัพพลายเออร์</div><table><thead><tr><th>ซัพพลายเออร์</th><th>รับเข้า</th><th>จ่ายแล้ว</th><th>คงค้าง</th></tr></thead><tbody>${bals.map(b=>`<tr><td>${b.supplierName}</td><td>฿${money(b.totalReceived,true)}</td><td>฿${money(b.totalPaid,true)}</td><td>฿${money(b.balance,true)}</td></tr>`).join('')}</tbody></table><h4>Supplier Aging</h4><table><thead><tr><th>ซัพพลายเออร์</th><th>Current</th><th>1-30</th><th>31-60</th><th>61-90</th><th>90+</th><th>รวม</th></tr></thead><tbody>${aging.map(a=>`<tr><td>${a.supplierName}</td><td>฿${money(a.current,true)}</td><td>฿${money(a.d1_30,true)}</td><td>฿${money(a.d31_60,true)}</td><td>฿${money(a.d61_90,true)}</td><td>฿${money(a.d90p,true)}</td><td>฿${money(a.total,true)}</td></tr>`).join('')}</tbody></table><h4>การจ่ายล่าสุด</h4><table><thead><tr><th>เวลา</th><th>ซัพพลายเออร์</th><th>จำนวน</th><th>วิธี</th></tr></thead><tbody>${payments.map(p=>`<tr><td>${fmtDate(p.paidAt)}</td><td>${p.supplierName}</td><td>฿${money(p.amount,true)}</td><td>${p.method}</td></tr>`).join('')}</tbody></table>`;}).getSupplierAging();}).getSupplierPayments(20);}).getSupplierBalances();
+    }
+
+    function loadReports(){
+      google.script.run.withSuccessHandler(list=>{const closed=list.filter(x=>x.status==='closed'); reportsWrap.innerHTML=`<div class="muted" style="margin-bottom:10px">เลือกรอบกะเพื่อพิมพ์รายงานปิดกะ</div><table><thead><tr><th>กะ</th><th>เปิด</th><th>ปิด</th><th>ส่วนต่าง</th><th></th></tr></thead><tbody>${closed.map(s=>`<tr><td>${s.id}</td><td>${fmtDate(s.openedAt)}</td><td>${fmtDate(s.closedAt)}</td><td>฿${money(s.cashDiff,true)}</td><td><button class="btn btn-line" onclick="printShiftReport('${s.id}')">พิมพ์รายงาน</button></td></tr>`).join('')}</tbody></table>` || '<div class="muted">ยังไม่มีกะที่ปิดแล้ว</div>';}).getAllShifts(20);
+      google.script.run.withSuccessHandler(rows=>{grossProfitWrap.innerHTML=`<div class="card"><h3 style="margin-top:0">กำไรขั้นต้นรายวัน</h3><table><thead><tr><th>วันที่</th><th>Revenue</th><th>COGS</th><th>Refund</th><th>Gross Profit</th><th>GM%</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${r.date}</td><td>฿${money(r.revenue,true)}</td><td>฿${money(r.cogs,true)}</td><td>฿${money(r.refunds,true)}</td><td>฿${money(r.grossProfit,true)}</td><td>${money(r.grossMarginPct,true)}%</td></tr>`).join('')}</tbody></table></div>`;}).getDailyGrossProfit(14);
+      google.script.run.withSuccessHandler(rows=>{receiptAuditWrap.innerHTML=`<div class="card"><h3 style="margin-top:0">Cancel Receipt / Reprint Log</h3><table><thead><tr><th>เวลา</th><th>ประเภท</th><th>Order</th><th>Payment</th><th>ยอด/เหตุผล</th><th>ผู้ทำรายการ</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${fmtDate(r.createdAt)}</td><td>${r.type}</td><td>${r.orderId}</td><td>${r.paymentId||'-'}</td><td>${r.amount?('฿'+money(r.amount,true)):'-'}<div class="muted">${esc(r.reason||'')}</div></td><td>${r.actorName||'-'}</td></tr>`).join('')}</tbody></table></div>`;}).getReceiptAuditLogs(50);
+    }
+
+  </script>
+</body>
+</html>
